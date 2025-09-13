@@ -12,7 +12,7 @@ import {
 } from "./interfaces/package";
 
 import { CURRENCY } from "./interfaces/currency";
-import type { Price, CurrencyType, LocalPrice } from "./interfaces/currency";
+import type { Price, Currency, LocalPrice } from "./interfaces/currency";
 
 import { WAREHOUSE, EVALUATION_TYPE } from "./interfaces/shipping";
 import type {
@@ -21,6 +21,7 @@ import type {
   ShippingRoute,
   Shipper,
 } from "./interfaces/shipping";
+import type { SidebarRoute } from "./routes";
 
 // Generic Helepr Functions
 function getVolume(dimensions: Dimensions): number {
@@ -34,10 +35,26 @@ function getVolumetricWeight(
   return getVolume(dimensions) / volumetricDivisor;
 }
 
+function findSidebarRouteNameByPath(
+  routes: SidebarRoute[],
+  path: string
+): string | undefined {
+  for (const route of routes) {
+    if (route.path === path) {
+      return route.name;
+    }
+    if (route.children) {
+      const found = findSidebarRouteNameByPath(route.children, path);
+      if (found) return found;
+    }
+  }
+  return undefined;
+}
+
 // Specific helper functions
 async function getConversionRate(
-  from: CurrencyType,
-  to: CurrencyType,
+  from: Currency,
+  to: Currency,
   date: Date = new Date()
 ): Promise<{ status: string; conversion_rate?: number }> {
   let exchangeRates = JSON.parse(
@@ -132,8 +149,8 @@ async function refreshPrice(
 }
 
 async function generatePrice(
-  paidCurrency: CurrencyType,
-  convertedCurrency?: CurrencyType,
+  paidCurrency: Currency,
+  convertedCurrency?: Currency,
   paidAmount: number = 0,
   timeStamp: Date = new Date(),
   conversionRate?: number,
@@ -159,10 +176,10 @@ async function generatePrice(
 
 async function generateShippingRoute(
   shipperId: string,
-  paidCurrency: CurrencyType,
+  paidCurrency: Currency,
   basedIn: Warehouse,
   evaluationType: EvaluationType = EVALUATION_TYPE.ACTUAL,
-  convertedCurrency?: CurrencyType
+  convertedCurrency?: Currency
 ): Promise<{ status: string; route: ShippingRoute }> {
   const conversionRate = !convertedCurrency
     ? 1
@@ -202,13 +219,13 @@ async function generateShippingRoute(
 
 function generateShipper(
   name: string = "",
-  currencyType: CurrencyType = CURRENCY.CNY,
+  defaultCurrency: Currency = CURRENCY.CNY,
   basedIn: Warehouse = WAREHOUSE.CHINA
 ): Shipper {
   return {
     id: uuidv4(),
     name,
-    currencyType,
+    defaultCurrency,
     basedIn,
     shippingRoutes: [],
   };
@@ -217,21 +234,20 @@ function generateShipper(
 function generateRun(
   name: string = "",
   timeStamp: Date = new Date(),
-  convertedCurrencyType: CurrencyType
+  convertedCurrency: Currency
 ): Run {
   return {
     id: uuidv4(),
     name,
     timeStamp,
     status: RUN_STATUS.PENDING,
-    convertedCurrencyType,
-    packages: [],
+    convertedCurrency,
   };
 }
 
 async function generatePackageRoute(
   shipperId: string,
-  paidCurrency: CurrencyType,
+  paidCurrency: Currency,
   basedIn: Warehouse,
   shippedOn: Date | undefined = undefined,
   deliveredOn: Date | undefined = undefined
@@ -256,7 +272,7 @@ function generatePackage(
     height: 0,
   },
   weight: number = 0,
-  itemCurrencyType: CurrencyType,
+  itemCurrency: Currency,
   timeStamp: Date = new Date(),
   link: string = ""
 ): Package {
@@ -265,7 +281,7 @@ function generatePackage(
     name,
     dimensions,
     weight,
-    itemCurrencyType,
+    itemCurrency,
     routes: [],
     timeStamp,
     link,
@@ -284,8 +300,8 @@ async function generateItem(
   quantity: number = 1,
   timeStamp: Date = new Date(),
   link: string = "",
-  itemCurrencyType: CurrencyType,
-  convertedCurrency: CurrencyType,
+  itemCurrency: Currency,
+  convertedCurrency: Currency,
   image?: string
 ): Promise<{ status: string; item?: Item }> {
   return {
@@ -296,9 +312,8 @@ async function generateItem(
       dimensions,
       weight,
       quantity,
-      cost: (
-        await generatePrice(itemCurrencyType, convertedCurrency, 0, timeStamp)
-      ).price!,
+      cost: (await generatePrice(itemCurrency, convertedCurrency, 0, timeStamp))
+        .price!,
       timeStamp,
       link,
       ...(image && { image }),
@@ -438,6 +453,9 @@ function calculateItemTotalPrice(
 }
 
 export {
+  getVolume,
+  getVolumetricWeight,
+  findSidebarRouteNameByPath,
   getConversionRate,
   refreshPrice,
   generatePrice,

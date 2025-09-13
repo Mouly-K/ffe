@@ -1,4 +1,4 @@
-import type { CurrencyType, Price } from "./currency";
+import type { Currency, Price } from "./currency";
 
 const WAREHOUSE = {
   CHINA: "China",
@@ -36,7 +36,7 @@ interface ShippingRoute {
 interface Shipper {
   id: string;
   name: string;
-  currencyType: CurrencyType;
+  defaultCurrency: Currency;
   basedIn: Warehouse;
   shippingRoutes: ShippingRoute[];
 }

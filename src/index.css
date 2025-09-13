@@ -1,5 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@font-face {
+  font-family: BabelStoneFlags;
+  src: url(./assets/fonts/BabelStoneFlags.ttf);
+}
 
 @custom-variant dark (&:is(.dark *));
 

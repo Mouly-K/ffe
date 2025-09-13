@@ -1,4 +1,4 @@
-import type { CurrencyType, Price } from "./currency";
+import type { Currency, Price } from "./currency";
 import type { ShippingRoute } from "./shipping";
 
 const PACKAGE_STATUS = {
@@ -30,10 +30,9 @@ interface Run {
   name: string;
   timeStamp: Date;
   status: RunStatus;
-  convertedCurrencyType: CurrencyType;
+  convertedCurrency: Currency;
   concludedOn?: Date;
   endedOn?: Date;
-  packages: Package[];
 }
 
 interface PackageRoute extends ShippingRoute {
@@ -53,7 +52,7 @@ interface Package {
   name: string;
   dimensions: Dimensions;
   weight: number;
-  itemCurrencyType: CurrencyType;
+  itemCurrency: Currency;
   routes: PackageRoute[];
   timeStamp: Date;
   link: string; // link to the package on the agent / middleman website
