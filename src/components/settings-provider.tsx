@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-import { CURRENCY } from "@/interfaces/currency";
 import { THEMES, type Settings } from "@/interfaces/settings";
 
 interface SettingsProviderProps {
@@ -17,7 +16,7 @@ type SettingsProviderState = {
 const initialState: SettingsProviderState = {
   settings: {
     theme: "system",
-    currency: CURRENCY.CNY,
+    currency: "CNY",
   },
   setSettings: () => null,
 };

@@ -1,31 +1,4 @@
-import type { CountryFlag, Currency, LocalPrice } from "./currency";
-
-const warehouses = {
-  CHINA: {
-    name: "China",
-    countryName: "China",
-    flag: "🇨🇳",
-  },
-  HK: {
-    name: "Hong Kong",
-    countryName: "Hong Kong",
-    flag: "🇭🇰",
-  },
-  MUMBAI: {
-    name: "Mumbai",
-    countryName: "India",
-    flag: "🇮🇳",
-  },
-  CHENNAI: {
-    name: "Chennai",
-    countryName: "India",
-    flag: "🇮🇳",
-  },
-} as const;
-
-type CountryName = (typeof warehouses)[keyof typeof warehouses]["countryName"];
-
-type Warehouse = (typeof warehouses)[keyof typeof warehouses]["name"];
+import type { Currency, LocalPrice } from "./currency";
 
 const EVALUATION_TYPE = {
   VOLUMETRIC: "Volumetric",
@@ -34,17 +7,11 @@ const EVALUATION_TYPE = {
 
 type EvaluationType = (typeof EVALUATION_TYPE)[keyof typeof EVALUATION_TYPE];
 
-const currenciesString = JSON.stringify(warehouses);
-function gen(
-  key: keyof (typeof warehouses)[keyof typeof warehouses]
-): Record<string, Warehouse | CountryName | CountryFlag> {
-  let obj = JSON.parse(currenciesString);
-  Object.keys(obj).forEach((k) => (obj[k] = obj[k][key]));
-  return obj;
-}
-
-const WAREHOUSE = gen("name") as Record<string, Warehouse>;
-const COUNTRY_NAMES = gen("countryName") as Record<string, CountryName>;
+type Warehouse = {
+  id: string;
+  name: string;
+  countryName: string;
+};
 
 interface ShippingRoute {
   id: string;
@@ -67,9 +34,9 @@ interface Shipper {
   id: string;
   name: string;
   defaultCurrency: Currency;
-  basedIn: Warehouse;
+  basedIn?: Warehouse;
   shippingRoutes: ShippingRoute[];
 }
 
-export { WAREHOUSE, COUNTRY_NAMES, EVALUATION_TYPE };
+export { EVALUATION_TYPE };
 export type { Warehouse, EvaluationType, ShippingRoute, Shipper };

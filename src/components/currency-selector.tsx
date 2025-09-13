@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Check, Search } from "lucide-react";
 import { IconDotsVertical } from "@tabler/icons-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,29 +17,52 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 
-import {
-  CURRENCY_NAME,
-  CURRENCY,
-  COUNTRY_FLAGS,
-  type Currency,
-} from "../interfaces/currency";
+import { CURRENCIES, type Currency } from "../interfaces/currency";
 
 interface CurrencySelectorProps {
   selectedCurrency?: Currency;
   onCurrencyChange?: (currency: Currency) => void;
 }
 
+export function RenderItem({ currency }: { currency: Currency }) {
+  return (
+    <>
+      <div className="h-8 w-8 rounded-lg text-xl flex justify-center items-center font-[BabelStoneFlags]">
+        {CURRENCIES[currency].flag}
+      </div>
+      <div className="grid flex-1 text-left text-sm leading-tight">
+        <span className="truncate font-medium">{currency}</span>
+        <span className="text-muted-foreground truncate text-xs">
+          {CURRENCIES[currency].currencyName}
+        </span>
+      </div>
+    </>
+  );
+}
+
 export function CurrencySelector({
-  selectedCurrency = "USD",
+  selectedCurrency = "CNY",
   onCurrencyChange,
 }: CurrencySelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const currencies = Object.values(CURRENCY);
+  // const filteredCurrencies = currencies.filter((currency) =>
+  //   currency.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
-  const filteredCurrencies = currencies.filter((currency) =>
-    currency.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCurrencies = (Object.keys(CURRENCIES) as Currency[]).filter(
+    (currency) =>
+      currency.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      CURRENCIES[currency].name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      CURRENCIES[currency].currencyName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      CURRENCIES[currency].flag
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   const handleCurrencySelect = (currency: Currency) => {
@@ -58,18 +80,7 @@ export function CurrencySelector({
           size="lg"
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
         >
-          <Avatar className="h-8 w-8 rounded-lg">
-            {/* <AvatarImage src={user?.avatar} alt={user?.name} /> */}
-            <AvatarFallback className="rounded-lg text-xs font-[BabelStoneFlags]">
-              {COUNTRY_FLAGS[selectedCurrency]}
-            </AvatarFallback>
-          </Avatar>
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-medium">{selectedCurrency}</span>
-            <span className="text-muted-foreground truncate text-xs">
-              {CURRENCY_NAME[selectedCurrency]}
-            </span>
-          </div>
+          <RenderItem currency={selectedCurrency} />
           <IconDotsVertical className="ml-auto size-4" />
         </SidebarMenuButton>
       </DropdownMenuTrigger>
@@ -94,7 +105,7 @@ export function CurrencySelector({
         <DropdownMenuSeparator />
         <ScrollArea className="h-64">
           <DropdownMenuGroup>
-            {filteredCurrencies.map((currency) => (
+            {filteredCurrencies.map((currency: Currency) => (
               <DropdownMenuItem
                 key={currency}
                 onClick={() => handleCurrencySelect(currency)}
@@ -104,18 +115,7 @@ export function CurrencySelector({
                     "bg-accent text-accent-foreground"
                 )}
               >
-                <Avatar className="h-8 w-8 rounded-lg">
-                  {/* <AvatarImage src={user?.avatar} alt={user?.name} /> */}
-                  <AvatarFallback className="rounded-lg text-xs font-[BabelStoneFlags]">
-                    {COUNTRY_FLAGS[currency]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{currency}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {CURRENCY_NAME[currency]}
-                  </span>
-                </div>
+                <RenderItem currency={currency} />
                 {selectedCurrency === currency && (
                   <Check className="ml-auto size-4" />
                 )}

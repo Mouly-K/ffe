@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink } from "react-router";
 import { IconInnerShadowTop } from "@tabler/icons-react";
 
@@ -16,11 +15,11 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import { CURRENCY, type Currency } from "@/interfaces/currency";
+import { useSettings } from "./settings-provider";
 import { sidebarRoutes } from "@/routes";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [userCurrency, setUserCurrency] = useState<Currency>(CURRENCY.CNY);
+  const { settings, setSettings } = useSettings();
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -48,8 +47,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <CurrencySelector
-              selectedCurrency={userCurrency}
-              onCurrencyChange={(newCurrency) => setUserCurrency(newCurrency)}
+              selectedCurrency={settings.currency}
+              onCurrencyChange={(newCurrency) =>
+                setSettings((settings) => ({
+                  ...settings,
+                  currency: newCurrency,
+                }))
+              }
             />
           </SidebarMenuItem>
         </SidebarMenu>

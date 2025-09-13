@@ -11,10 +11,9 @@ import {
   type ItemRoute,
 } from "./interfaces/package";
 
-import { CURRENCY } from "./interfaces/currency";
 import type { Price, Currency, LocalPrice } from "./interfaces/currency";
 
-import { WAREHOUSE, EVALUATION_TYPE } from "./interfaces/shipping";
+import { EVALUATION_TYPE } from "./interfaces/shipping";
 import type {
   Warehouse,
   EvaluationType,
@@ -49,6 +48,18 @@ function findSidebarRouteNameByPath(
     }
   }
   return undefined;
+}
+
+function indexBy<T extends Record<K, T[K]>, K extends keyof T>(
+  array: readonly T[],
+  key: K
+): { [key in K]: Omit<T, K> } {
+  return array.reduce((acc, item) => {
+    const keyValue = item[key];
+    const { [key]: _, ...rest } = item;
+    acc[keyValue] = rest;
+    return acc;
+  }, {} as { [key in K]: Omit<T, K> });
 }
 
 // Specific helper functions
@@ -207,8 +218,8 @@ function generateShippingRoute(
 
 function generateShipper(
   name: string = "",
-  defaultCurrency: Currency = CURRENCY.CNY,
-  basedIn: Warehouse = WAREHOUSE.CHINA
+  defaultCurrency: Currency = "CNY",
+  basedIn?: Warehouse
 ): Shipper {
   return {
     id: uuidv4(),
@@ -475,6 +486,7 @@ export {
   getVolume,
   getVolumetricWeight,
   findSidebarRouteNameByPath,
+  indexBy,
   getConversionRate,
   refreshPrice,
   generatePrice,
