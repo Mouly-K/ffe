@@ -176,10 +176,22 @@ const currencies = {
   },
 } as const;
 
-
-type Country = (typeof currencies)[keyof typeof currencies]["name"];
+type CurrencyName = (typeof currencies)[keyof typeof currencies]["name"];
 type CountryFlag = (typeof currencies)[keyof typeof currencies]["flag"];
 type Currency = (typeof currencies)[keyof typeof currencies]["currency"];
+
+const currenciesString = JSON.stringify(currencies);
+function gen(
+  key: keyof (typeof currencies)[keyof typeof currencies]
+): Record<string, CurrencyName | Currency | CountryFlag> {
+  let obj = JSON.parse(currenciesString);
+  Object.keys(obj).forEach((k) => (obj[k] = obj[k][key]));
+  return obj;
+}
+
+const CURRENCY_NAME = gen("name") as Record<string, CurrencyName>;
+const COUNTRY_FLAGS = gen("flag") as Record<string, CountryFlag>;
+const CURRENCY = gen("currency") as Record<string, Currency>;
 
 interface LocalPrice {
   paidCurrency: Currency;
@@ -193,18 +205,5 @@ interface Price extends LocalPrice {
   convertedAmount: number;
 }
 
-const currenciesString = JSON.stringify(currencies);
-function gen(
-  key: keyof (typeof currencies)[keyof typeof currencies]
-): Record<string, Country | Currency | CountryFlag> {
-  let obj = JSON.parse(currenciesString);
-  Object.keys(obj).forEach((k) => (obj[k] = obj[k][key]));
-  return obj;
-}
-
-const COUNTRY = gen("name") as Record<string, Country>;
-const COUNTRY_FLAGS = gen("flag") as Record<string, CountryFlag>;
-const CURRENCY = gen("currency") as Record<string, Currency>;
-
-export { COUNTRY, CURRENCY, COUNTRY_FLAGS };
+export { CURRENCY_NAME, COUNTRY_FLAGS, CURRENCY };
 export type { Currency, CountryFlag, LocalPrice, Price };

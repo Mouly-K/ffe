@@ -44,7 +44,7 @@ export const ThemeSwitcher = () => {
     return null;
   }
   return (
-    <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left outline-hidden h-8 text-sm">
+    <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left outline-hidden h-8 text-sm cursor-default">
       <div className="flex items-center gap-2 w-full">
         <IconColorFilter className="size-4 shrink-0" />
         {themes.find((t) => t.key === settings.theme)?.label}

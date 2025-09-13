@@ -135,7 +135,7 @@ async function refreshPrice(
 ): Promise<{ status: string; price?: Price }> {
   const newRate = await getConversionRate(
     price.paidCurrency,
-    price.convertedCurrency!
+    price.convertedCurrency
   );
   return {
     status: newRate.status,
@@ -150,17 +150,15 @@ async function refreshPrice(
 
 async function generatePrice(
   paidCurrency: Currency,
-  convertedCurrency?: Currency,
+  convertedCurrency: Currency,
   paidAmount: number = 0,
   timeStamp: Date = new Date(),
   conversionRate?: number,
   convertedAmount: number = 0
 ): Promise<{ status: string; price?: Price }> {
-  const conversion_rate = !convertedCurrency
-    ? 1
-    : conversionRate ||
-      (await getConversionRate(paidCurrency, convertedCurrency))
-        .conversion_rate!;
+  const conversion_rate =
+    conversionRate ||
+    (await getConversionRate(paidCurrency, convertedCurrency)).conversion_rate!;
   return {
     status: "Price generated successfully! ",
     price: {
@@ -174,46 +172,36 @@ async function generatePrice(
   };
 }
 
-async function generateShippingRoute(
+function generateShippingRoute(
   shipperId: string,
   paidCurrency: Currency,
   basedIn: Warehouse,
   evaluationType: EvaluationType = EVALUATION_TYPE.ACTUAL,
-  convertedCurrency?: Currency
-): Promise<{ status: string; route: ShippingRoute }> {
-  const conversionRate = !convertedCurrency
-    ? 1
-    : (await getConversionRate(paidCurrency, convertedCurrency))
-        .conversion_rate!;
-
-  const price: Price = {
+  price?: LocalPrice
+): ShippingRoute {
+  const splitPrice: LocalPrice = {
     paidCurrency: paidCurrency,
     paidAmount: 0,
     timeStamp: new Date(),
-    convertedCurrency: convertedCurrency || paidCurrency,
-    conversionRate,
-    convertedAmount: 0,
   };
 
   return {
-    status: "Shipping route generated successfully!",
-    route: {
-      id: uuidv4(),
-      shipperId: shipperId,
-      name: "",
-      originWarehouse: basedIn,
-      destinationWarehouse: basedIn,
-      evaluationType: EVALUATION_TYPE.ACTUAL,
-      ...(evaluationType === EVALUATION_TYPE.VOLUMETRIC && {
-        volumetricDivisor: 8000,
-      }),
-      feeSplit: {
-        firstWeightKg: 1,
-        firstWeightCost: { ...price },
-        continuedWeightCost: { ...price },
-        miscFee: { ...price },
-      },
+    id: uuidv4(),
+    shipperId: shipperId,
+    name: "",
+    originWarehouse: basedIn,
+    destinationWarehouse: basedIn,
+    evaluationType: EVALUATION_TYPE.ACTUAL,
+    ...(evaluationType === EVALUATION_TYPE.VOLUMETRIC && {
+      volumetricDivisor: 8000,
+    }),
+    feeSplit: {
+      firstWeightKg: 1,
+      firstWeightCost: { ...splitPrice },
+      continuedWeightCost: { ...splitPrice },
+      miscFee: { ...splitPrice },
     },
+    ...(price && { price }),
   };
 }
 
@@ -246,21 +234,52 @@ function generateRun(
 }
 
 async function generatePackageRoute(
-  shipperId: string,
-  paidCurrency: Currency,
-  basedIn: Warehouse,
+  route: ShippingRoute,
+  convertedCurrency: Currency,
   shippedOn: Date | undefined = undefined,
   deliveredOn: Date | undefined = undefined
 ): Promise<{ status: string; route: PackageRoute }> {
+  const packageRoute: PackageRoute = {
+    ...route,
+    feeSplit: {
+      firstWeightKg: route.feeSplit.firstWeightKg,
+      firstWeightCost: (
+        await refreshPrice({
+          ...route.feeSplit.firstWeightCost,
+          convertedCurrency,
+        } as Price)
+      ).price!,
+      continuedWeightCost: (
+        await refreshPrice({
+          ...route.feeSplit.continuedWeightCost,
+          convertedCurrency,
+        } as Price)
+      ).price!,
+      miscFee: (
+        await refreshPrice({
+          ...route.feeSplit.miscFee,
+          convertedCurrency,
+        } as Price)
+      ).price!,
+    },
+    ...(route.price && {
+      price: (
+        await refreshPrice({ ...route.price, convertedCurrency } as Price)
+      ).price!,
+    }),
+    trackingNumber: "",
+    status: PACKAGE_STATUS.PENDING,
+    shippedOn,
+    deliveredOn,
+  } as PackageRoute;
+
+  // route.feeSplit = {
+  //   firstWeightKg: 0,
+  // };
+
   return {
     status: "Package route created successfully!",
-    route: {
-      ...(await generateShippingRoute(shipperId, paidCurrency, basedIn)).route,
-      trackingNumber: "",
-      status: PACKAGE_STATUS.PENDING,
-      shippedOn,
-      deliveredOn,
-    },
+    route: packageRoute,
   };
 }
 

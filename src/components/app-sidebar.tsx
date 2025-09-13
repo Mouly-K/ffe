@@ -5,7 +5,7 @@ import { IconInnerShadowTop } from "@tabler/icons-react";
 import { NavRuns } from "@/components/nav-runs";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
-import { NavCurrencySelector } from "@/components/nav-currencyselector";
+import { CurrencySelector } from "@/components/currency-selector";
 import {
   Sidebar,
   SidebarContent,
@@ -45,10 +45,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={sidebarRoutes.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavCurrencySelector
-          selectedCurrency={userCurrency}
-          onCurrencyChange={(newCurrency) => setUserCurrency(newCurrency)}
-        />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <CurrencySelector
+              selectedCurrency={userCurrency}
+              onCurrencyChange={(newCurrency) => setUserCurrency(newCurrency)}
+            />
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

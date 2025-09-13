@@ -36,6 +36,13 @@ interface Run {
 }
 
 interface PackageRoute extends ShippingRoute {
+  feeSplit: {
+    firstWeightKg: number;
+    firstWeightCost: Price;
+    continuedWeightCost: Price;
+    miscFee: Price; // any additional fixed fee
+  };
+  price?: Price;
   trackingNumber: string;
   status: PackageStatus;
   shippedOn?: Date;
