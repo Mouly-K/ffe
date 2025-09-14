@@ -23,6 +23,28 @@ import type {
 import type { SidebarRoute } from "./routes";
 
 // Generic Helepr Functions
+function indexBy<T extends Record<K, T[K]>, K extends keyof T>(
+  array: readonly T[],
+  key: K
+): { [key in K]: Omit<T, K> } {
+  return array.reduce((acc, item) => {
+    const keyValue = item[key];
+    const { [key]: _, ...rest } = item;
+    acc[keyValue] = rest;
+    return acc;
+  }, {} as { [key in K]: Omit<T, K> });
+}
+
+function filterObject<T extends Record<K, T[K]>, K extends keyof T>(
+  obj: T,
+  predicate: <K extends keyof T>(key: K, value: T[K]) => boolean
+): Partial<T> {
+  const filteredEntries = Object.entries(obj).filter(([key, value]) =>
+    predicate(key as keyof T, value as T[keyof T])
+  );
+  return Object.fromEntries(filteredEntries) as Partial<T>;
+}
+
 function getVolume(dimensions: Dimensions): number {
   return dimensions.length * dimensions.breadth * dimensions.height;
 }
@@ -48,18 +70,6 @@ function findSidebarRouteNameByPath(
     }
   }
   return undefined;
-}
-
-function indexBy<T extends Record<K, T[K]>, K extends keyof T>(
-  array: readonly T[],
-  key: K
-): { [key in K]: Omit<T, K> } {
-  return array.reduce((acc, item) => {
-    const keyValue = item[key];
-    const { [key]: _, ...rest } = item;
-    acc[keyValue] = rest;
-    return acc;
-  }, {} as { [key in K]: Omit<T, K> });
 }
 
 // Specific helper functions
@@ -483,10 +493,11 @@ function calculateItemTotalPrice(
 }
 
 export {
+  indexBy,
+  filterObject,
   getVolume,
   getVolumetricWeight,
   findSidebarRouteNameByPath,
-  indexBy,
   getConversionRate,
   refreshPrice,
   generatePrice,

@@ -1,3 +1,5 @@
+import { indexBy } from "@/utils";
+
 const countries = [
   {
     name: "China",
@@ -214,5 +216,10 @@ const countries = [
 type CountryName = (typeof countries)[number]["name"];
 type CountryFlag = (typeof countries)[number]["flag"];
 
-export { countries };
+// @ts-expect-error
+const COUNTRIES: {
+  [key in CountryName]: Omit<(typeof countries)[number], "name">;
+} = indexBy(countries, "name");
+
+export { countries, COUNTRIES };
 export type { CountryName, CountryFlag };

@@ -2,10 +2,11 @@ import { countries } from "./country";
 import { indexBy } from "@/utils";
 
 type Currency = (typeof countries)[number]["currencyTag"];
+type CurrencyValue = Omit<(typeof countries)[number], "currencyTag">;
 
 // @ts-expect-error
 const CURRENCIES: {
-  [key in Currency]: Omit<(typeof countries)[number], "currencyTag">;
+  [key in Currency]: CurrencyValue;
 } = indexBy(countries, "currencyTag");
 
 interface LocalPrice {
@@ -21,4 +22,4 @@ interface Price extends LocalPrice {
 }
 
 export { CURRENCIES };
-export type { Currency, LocalPrice, Price };
+export type { Currency, CurrencyValue, LocalPrice, Price };

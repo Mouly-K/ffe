@@ -1,10 +1,8 @@
 import { NavLink } from "react-router";
 import { IconInnerShadowTop } from "@tabler/icons-react";
 
-import { NavRuns } from "@/components/nav-runs";
-import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
-import { CurrencySelector } from "@/components/currency-selector";
+import { useSettings } from "./settings-provider";
+
 import {
   Sidebar,
   SidebarContent,
@@ -15,8 +13,13 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import { useSettings } from "./settings-provider";
+import { NavRuns } from "@/components/nav-runs";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { SearchSelector } from "@/components/search-selector";
+
 import { sidebarRoutes } from "@/routes";
+import { CURRENCIES } from "@/interfaces/currency";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { settings, setSettings } = useSettings();
@@ -46,14 +49,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <CurrencySelector
-              selectedCurrency={settings.currency}
-              onCurrencyChange={(newCurrency) =>
-                setSettings((settings) => ({
-                  ...settings,
-                  currency: newCurrency,
+            <SearchSelector
+              items={CURRENCIES}
+              selectedKey={settings.currency}
+              renderItem={(key, item) => (
+                <>
+                  <div className="h-8 w-8 rounded-lg text-xl flex justify-center items-center font-[BabelStoneFlags]">
+                    {item.flag}
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">{key}</span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {item.currencyName}
+                    </span>
+                  </div>
+                </>
+              )}
+              onSelect={(currency) =>
+                setSettings((oldSettings) => ({
+                  ...oldSettings,
+                  currency,
                 }))
               }
+              label="Choose a currency"
             />
           </SidebarMenuItem>
         </SidebarMenu>
