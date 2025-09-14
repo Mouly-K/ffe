@@ -1,3 +1,4 @@
+import type { CountryName } from "./country";
 import type { Currency, LocalPrice } from "./currency";
 
 const EVALUATION_TYPE = {
@@ -9,8 +10,8 @@ type EvaluationType = (typeof EVALUATION_TYPE)[keyof typeof EVALUATION_TYPE];
 
 type Warehouse = {
   id: string;
-  name: string;
-  countryName: string;
+  name: string | CountryName;
+  countryName: CountryName;
 };
 
 interface ShippingRoute {
@@ -34,6 +35,7 @@ interface Shipper {
   id: string;
   name: string;
   defaultCurrency: Currency;
+  image?: string;
   basedIn?: Warehouse;
   shippingRoutes: ShippingRoute[];
 }

@@ -22,6 +22,8 @@ interface SearchSelectorProps<T extends Record<K, T[K]>, K extends keyof T> {
   renderItem: (key: K, item: T[K]) => React.ReactNode;
   onSelect: (key: K) => void;
   label?: string;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 export function SearchSelector<T, K extends keyof T>({
@@ -30,6 +32,7 @@ export function SearchSelector<T, K extends keyof T>({
   renderItem,
   onSelect,
   label = "Choose an item",
+  children,
 }: SearchSelectorProps<T, K>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -55,18 +58,20 @@ export function SearchSelector<T, K extends keyof T>({
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <SidebarMenuButton
-          size="lg"
-          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-        >
-          {selectedItem && renderItem(selectedKey, selectedItem)}
-          <IconDotsVertical className="ml-auto size-4" />
-        </SidebarMenuButton>
+        {children || (
+          <SidebarMenuButton
+            size="lg"
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          >
+            {selectedItem && renderItem(selectedKey, selectedItem)}
+            <IconDotsVertical className="ml-auto size-4" />
+          </SidebarMenuButton>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
         side={isMobile ? "bottom" : "right"}
-        align="end"
+        align="start"
         sideOffset={4}
       >
         <DropdownMenuLabel className="p-0">

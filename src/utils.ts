@@ -45,6 +45,10 @@ function filterObject<T extends Record<K, T[K]>, K extends keyof T>(
   return Object.fromEntries(filteredEntries) as Partial<T>;
 }
 
+function toFixedWithoutTrailingZeros(num: number, precision: number) {
+  return String(parseFloat(num.toFixed(precision)));
+}
+
 function getVolume(dimensions: Dimensions): number {
   return dimensions.length * dimensions.breadth * dimensions.height;
 }
@@ -78,46 +82,51 @@ async function getConversionRate(
   to: Currency,
   date: Date = new Date()
 ): Promise<{ status: string; conversion_rate?: number }> {
+  // Converting to lowercase to match with API calls
+  let source = from.toLowerCase(),
+    dest = to.toLowerCase();
+
   let exchangeRates = JSON.parse(
     localStorage.getItem("exchangeRates") || "{}"
   ) as Record<string, any>;
 
-  if (from === to)
+  if (source === dest)
     return Promise.resolve({
       status: "No conversion required",
       conversion_rate: 1,
     });
 
-  const formattedDateString = `${date.getFullYear()}/${date.getMonth()}/${date.getDate()}`;
-  const key = `${from}/${formattedDateString}`;
+  const formattedDateString = `${date.getFullYear()}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const storageKey = `${formattedDateString}/${source}`;
 
   try {
     // Exchange rate API query requires currency, date, month and year
     // To avoid frequent API calls, store the rates in local storage with key same as URL
     // v6.exchangerate-api.com/v6/YOUR-API-KEY/history/USD/YEAR/MONTH/DAY
-    if (exchangeRates[key] && exchangeRates[key][to]) {
+    if (exchangeRates[storageKey] && exchangeRates[storageKey][dest]) {
       return Promise.resolve({
         status: "Fetched from cache",
-        conversion_rate: exchangeRates[key][to],
+        conversion_rate: exchangeRates[storageKey][dest],
       });
     }
 
     // If not found in local storage, fetch from API
-    return await fetch(
-      `${import.meta.env.VITE_EXCHANGE_RATE_API_URL}history/${key}`
-    )
+    const key = `${formattedDateString}/v1/currencies/${source}.json`;
+    return await fetch(`${import.meta.env.VITE_EXCHANGE_RATE_BASE_URL}${key}`)
       .then((response) => response.json())
       .then((data) => {
-        if (data.result === "success") {
+        if (data.date) {
           // Store the fetched rates in local storage
           exchangeRates = {
             ...exchangeRates,
-            [key]: data.conversion_rates,
+            [storageKey]: data[source],
           };
           localStorage.setItem("exchangeRates", JSON.stringify(exchangeRates));
           return Promise.resolve({
             status: "Fetched from API",
-            conversion_rate: data.conversion_rates[to],
+            conversion_rate: data[source][dest],
           });
         }
         throw new Error("Failed to fetch conversion rate");
@@ -126,22 +135,22 @@ async function getConversionRate(
     console.error("Error fetching conversion rate:", error);
     // If not found in local storage, and API call also fails
     const keys = Object.keys(exchangeRates)
-      .filter((k) => k.startsWith(from))
+      .filter((k) => k.startsWith(source))
       .sort();
     if (keys.length > 0) {
       // Return the rate that is present just after the requested date
       for (let i = 0; i < keys.length; i++) {
-        if (keys[i] > key && exchangeRates[keys[i]][to]) {
+        if (keys[i] > storageKey && exchangeRates[keys[i]][dest]) {
           return Promise.resolve({
             status: "Fetched from cache (next available date)",
-            conversion_rate: exchangeRates[keys[i]][to],
+            conversion_rate: exchangeRates[keys[i]][dest],
           });
         }
       }
       // If no future date found, return the last known rate
       return Promise.resolve({
         status: "Fetched from cache (last known date)",
-        conversion_rate: exchangeRates[keys[keys.length - 1]][to],
+        conversion_rate: exchangeRates[keys[keys.length - 1]][dest],
       });
     }
     // GG, absolutely hope-less case
@@ -495,6 +504,7 @@ function calculateItemTotalPrice(
 export {
   indexBy,
   filterObject,
+  toFixedWithoutTrailingZeros,
   getVolume,
   getVolumetricWeight,
   findSidebarRouteNameByPath,

@@ -1,0 +1,27 @@
+[
+  {
+    "id": "id/China",
+    "name": "China",
+    "countryName": "China"
+  },
+  {
+    "id": "id/Huizhou",
+    "name": "Huizhou",
+    "countryName": "China"
+  },
+  {
+    "id": "id/Hong Kong",
+    "name": "Hong Kong",
+    "countryName": "Hong Kong"
+  },
+  {
+    "id": "id/Mumbai",
+    "name": "Mumbai",
+    "countryName": "India"
+  },
+  {
+    "id": "id/Chennai",
+    "name": "Chennai",
+    "countryName": "India"
+  }
+]
