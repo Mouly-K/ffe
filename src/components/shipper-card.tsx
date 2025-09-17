@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
-
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 import { useSettings } from "@/components/settings-provider";
 
-import { Separator } from "@/components/ui/separator";
-
 import { EditImage } from "@/components/edit-image";
-import { columns } from "@/components/table/columns";
+
+import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
 import { SearchSelector } from "@/components/search-selector";
 
@@ -23,6 +22,7 @@ import {
   toFixedWithoutTrailingZeros,
   getConversionRate,
 } from "@/utils";
+import Flag from "./flag";
 
 const WAREHOUSES: {
   [id: string]: Omit<Warehouse, "id">;
@@ -62,9 +62,7 @@ function ShipperCard({
                 selectedKey={shipper.defaultCurrency}
                 renderItem={(key, item) => (
                   <>
-                    <div className="h-8 w-8 rounded-lg text-xl flex justify-center items-center font-[BabelStoneFlags]">
-                      {item.flag}
-                    </div>
+                    <Flag flag={item.flag} />
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-medium">{key}</span>
                       <span className="text-muted-foreground truncate text-xs">
@@ -87,9 +85,7 @@ function ShipperCard({
                 >
                   Default Currency
                   <Separator orientation="vertical" className="mx-2 h-8" />
-                  <div className="h-8 flex justify-center items-center font-[BabelStoneFlags]">
-                    {CURRENCIES[shipper.defaultCurrency].flag}
-                  </div>
+                  <Flag flag={CURRENCIES[shipper.defaultCurrency].flag} />
                   <p>{CURRENCIES[shipper.defaultCurrency].currencyName}</p>
                   {shipper.defaultCurrency !== settings.currency && (
                     <p>
@@ -113,9 +109,7 @@ function ShipperCard({
                   selectedKey={shipper.basedIn.id}
                   renderItem={(_, item) => (
                     <>
-                      <div className="h-8 w-8 rounded-lg text-xl flex justify-center items-center font-[BabelStoneFlags]">
-                        {COUNTRIES[item.countryName].flag}
-                      </div>
+                      <Flag flag={COUNTRIES[item.countryName].flag} />
                       <div className="grid flex-1 text-left text-sm leading-tight">
                         <span className="truncate font-medium">
                           {item.name}

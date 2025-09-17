@@ -20,6 +20,7 @@ import { SearchSelector } from "@/components/search-selector";
 
 import { sidebarRoutes } from "@/routes";
 import { CURRENCIES } from "@/interfaces/currency";
+import Flag from "./flag";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { settings, setSettings } = useSettings();
@@ -54,9 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               selectedKey={settings.currency}
               renderItem={(key, item) => (
                 <>
-                  <div className="h-8 w-8 rounded-lg text-xl flex justify-center items-center font-[BabelStoneFlags]">
-                    {item.flag}
-                  </div>
+                  <Flag flag={item.flag} />
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-medium">{key}</span>
                     <span className="text-muted-foreground truncate text-xs">
