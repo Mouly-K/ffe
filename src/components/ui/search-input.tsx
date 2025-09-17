@@ -2,21 +2,23 @@ import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 
 type SearchInputProps = {
-  placeholderKey: string;
   value: string;
   onChange: React.Dispatch<React.SetStateAction<string>>;
   debounce?: number;
-  clasName?: string;
+  className?: string;
   inputClassName?: string;
+  placeholderKey?: string;
+  placeholder?: string;
 };
 
 function SearchInput({
-  placeholderKey,
   value,
   onChange,
   debounce,
-  clasName,
+  className,
   inputClassName,
+  placeholderKey,
+  placeholder,
 }: SearchInputProps) {
   const [query, setQuery] = useState("");
 
@@ -36,12 +38,16 @@ function SearchInput({
   return (
     <div
       className={`flex items-center border border-input rounded-md px-3 w-[150px] lg:w-[250px] gap-2 ${
-        clasName && clasName
+        className && className
       }`}
     >
       <Search className="size-4 opacity-50" />
       <input
-        placeholder={`Search ${placeholderKey}...`}
+        placeholder={
+          placeholderKey
+            ? `Search ${placeholderKey}...`
+            : placeholder || "Search ..."
+        }
         type="search"
         value={query}
         onChange={handleChange}

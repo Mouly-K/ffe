@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { useSettings } from "@/components/settings-provider";
 
 import { EditImage } from "@/components/edit-image";
+import Flag from "./flag";
 
 import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
@@ -22,7 +23,6 @@ import {
   toFixedWithoutTrailingZeros,
   getConversionRate,
 } from "@/utils";
-import Flag from "./flag";
 
 const WAREHOUSES: {
   [id: string]: Omit<Warehouse, "id">;

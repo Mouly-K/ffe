@@ -29,7 +29,7 @@ function Shippers() {
             value={searchQuery}
             onChange={(value) => setSearchQuery(value)}
             debounce={250}
-            clasName="h-8"
+            className="h-8"
           />
           <Button variant="outline" size="sm" className="h-8">
             <PlusCircle />
