@@ -6,11 +6,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { sidebarRoutes, type SidebarRoute } from "@/routes";
 import { findSidebarRouteNameByPath } from "@/utils";
 
-export function SiteHeader({
-  headerContent,
-}: {
-  headerContent?: React.ReactElement;
-}) {
+export function SiteHeader({ children }: any) {
   const routes: SidebarRoute[] = Object.keys(sidebarRoutes).reduce(
     (routes, key) => [...routes, ...sidebarRoutes[key]],
     [] as SidebarRoute[]
@@ -25,7 +21,7 @@ export function SiteHeader({
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        {headerContent || (
+        {children || (
           <h1 className="text-base font-medium">
             {findSidebarRouteNameByPath(routes, location.pathname)}
           </h1>

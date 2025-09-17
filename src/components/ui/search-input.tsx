@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search } from "lucide-react";
 
 type SearchInputProps = {
+  placeholderKey: string;
   value: string;
   onChange: React.Dispatch<React.SetStateAction<string>>;
   debounce?: number;
@@ -10,6 +11,7 @@ type SearchInputProps = {
 };
 
 function SearchInput({
+  placeholderKey,
   value,
   onChange,
   debounce,
@@ -39,7 +41,7 @@ function SearchInput({
     >
       <Search className="size-4 opacity-50" />
       <input
-        placeholder="Search shippers..."
+        placeholder={`Search ${placeholderKey}...`}
         type="search"
         value={query}
         onChange={handleChange}
