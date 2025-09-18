@@ -48,9 +48,9 @@ export function SearchSelector<T, K extends keyof T>({
   );
 
   const handleSelect = (key: K) => {
-    onSelect(key);
-    setIsOpen(false);
     setSearchQuery("");
+    setIsOpen(false);
+    onSelect(key);
   };
 
   const selectedItem = items[selectedKey];
@@ -111,7 +111,6 @@ export function SearchSelector<T, K extends keyof T>({
             )}
           </DropdownMenuGroup>
         </ScrollArea>
-        <DropdownMenuSeparator />
       </DropdownMenuContent>
     </DropdownMenu>
   );

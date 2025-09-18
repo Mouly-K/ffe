@@ -14,7 +14,7 @@ type Warehouse = {
   countryName: CountryName;
 };
 
-interface ShippingRoute {
+type ShippingRoute = {
   id: string;
   shipperId: string;
   name: string;
@@ -29,16 +29,16 @@ interface ShippingRoute {
     miscFee: LocalPrice; // any additional fixed fee
   };
   price?: LocalPrice; // Use for both setting the final calculated price as well as custom prices
-}
+};
 
-interface Shipper {
+type Shipper = {
   id: string;
   name: string;
   defaultCurrency: Currency;
   image?: string;
   basedIn?: Warehouse;
   shippingRoutes: ShippingRoute[];
-}
+};
 
 export { EVALUATION_TYPE };
 export type { Warehouse, EvaluationType, ShippingRoute, Shipper };

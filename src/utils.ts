@@ -105,10 +105,26 @@ async function getConversionRate(
     // Exchange rate API query requires currency, date, month and year
     // To avoid frequent API calls, store the rates in local storage with key same as URL
     // v6.exchangerate-api.com/v6/YOUR-API-KEY/history/USD/YEAR/MONTH/DAY
+
+    // Check direct source -> dest rate in cache
     if (exchangeRates[storageKey] && exchangeRates[storageKey][dest]) {
       return Promise.resolve({
-        status: "Fetched from cache",
+        status: "Fetched from cache (direct)",
         conversion_rate: exchangeRates[storageKey][dest],
+      });
+    }
+
+    // Check reverse dest -> source rate in cache
+    const reverseStorageKey = `${formattedDateString}/${dest}`;
+    if (
+      exchangeRates[reverseStorageKey] &&
+      exchangeRates[reverseStorageKey][source]
+    ) {
+      // Calculate reciprocal of the reverse rate
+      const reverseRate = exchangeRates[reverseStorageKey][source];
+      return Promise.resolve({
+        status: "Fetched from cache (reverse)",
+        conversion_rate: 1 / reverseRate,
       });
     }
 

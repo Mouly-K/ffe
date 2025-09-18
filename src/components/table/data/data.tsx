@@ -1,3 +1,4 @@
+import { EVALUATION_TYPE } from "@/interfaces/shipping";
 import {
   ArrowDown,
   ArrowRight,
@@ -6,23 +7,23 @@ import {
   Circle,
   CircleOff,
   HelpCircle,
+  Package,
   Timer,
-} from "lucide-react"
+  Weight,
+} from "lucide-react";
 
-export const labels = [
+export const evaluationTypes = [
   {
-    value: "bug",
-    label: "Bug",
+    value: EVALUATION_TYPE.VOLUMETRIC,
+    label: EVALUATION_TYPE.VOLUMETRIC,
+    icon: Package,
   },
   {
-    value: "feature",
-    label: "Feature",
+    value: EVALUATION_TYPE.ACTUAL,
+    label: EVALUATION_TYPE.ACTUAL,
+    icon: Weight,
   },
-  {
-    value: "documentation",
-    label: "Documentation",
-  },
-]
+];
 
 export const statuses = [
   {
@@ -50,7 +51,7 @@ export const statuses = [
     label: "Canceled",
     icon: CircleOff,
   },
-]
+];
 
 export const priorities = [
   {
@@ -68,4 +69,4 @@ export const priorities = [
     value: "high",
     icon: ArrowUp,
   },
-]
+];

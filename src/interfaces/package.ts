@@ -19,13 +19,13 @@ type PackageStatus = (typeof PACKAGE_STATUS)[keyof typeof PACKAGE_STATUS];
 
 type RunStatus = (typeof RUN_STATUS)[keyof typeof RUN_STATUS];
 
-interface Dimensions {
+type Dimensions = {
   length: number;
   breadth: number;
   height: number;
-}
+};
 
-interface Run {
+type Run = {
   id: string;
   name: string;
   timeStamp: Date;
@@ -33,9 +33,9 @@ interface Run {
   convertedCurrency: Currency;
   concludedOn?: Date;
   endedOn?: Date;
-}
+};
 
-interface PackageRoute extends ShippingRoute {
+type PackageRoute = ShippingRoute & {
   feeSplit: {
     firstWeightKg: number;
     firstWeightCost: Price;
@@ -47,14 +47,14 @@ interface PackageRoute extends ShippingRoute {
   status: PackageStatus;
   shippedOn?: Date;
   deliveredOn?: Date;
-}
+};
 
-interface ItemRoute {
+type ItemRoute = {
   routeId: string;
   price: Price;
-}
+};
 
-interface Package {
+type Package = {
   id: string;
   name: string;
   dimensions: Dimensions;
@@ -64,9 +64,9 @@ interface Package {
   timeStamp: Date;
   link: string; // link to the package on the agent / middleman website
   items: Item[];
-}
+};
 
-interface Item {
+type Item = {
   id: string;
   name: string;
   dimensions: Dimensions;
@@ -76,7 +76,7 @@ interface Item {
   timeStamp: Date;
   link: string;
   image?: string;
-}
+};
 
 export { PACKAGE_STATUS, RUN_STATUS };
 export type {

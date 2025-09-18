@@ -3,13 +3,14 @@ import { PlusCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/ui/search-input";
+
 import ShipperCard from "@/components/shipper-card";
+import { SiteHeader } from "@/components/site-header";
+import AppContainer from "@/components/app-container";
 
 import type { Shipper } from "@/interfaces/shipping";
 
 import SHIPPERS from "@/data/shippers.json";
-import { SiteHeader } from "@/components/site-header";
-import AppContainer from "@/components/app-container";
 
 function Shippers() {
   const [searchQuery, setSearchQuery] = useState("");

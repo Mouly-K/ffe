@@ -6,7 +6,7 @@ import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTableViewOptions } from "../data-table-view-options";
 
-import { priorities, statuses } from "../data/data";
+import { evaluationTypes } from "../data/data";
 import { DataTableFacetedFilter } from "../data-table-faceted-filter";
 import SearchInput from "@/components/ui/search-input";
 
@@ -24,23 +24,16 @@ export function DataTableToolbar<TData>({
       <div className="flex flex-1 items-center space-x-2">
         <SearchInput
           placeholder="Filter items..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(value) => table.getColumn("title")?.setFilterValue(value)}
+          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          onChange={(value) => table.getColumn("name")?.setFilterValue(value)}
           debounce={250}
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("status") && (
+        {table.getColumn("evaluationType") && (
           <DataTableFacetedFilter
-            column={table.getColumn("status")}
-            title="Status"
-            options={statuses}
-          />
-        )}
-        {table.getColumn("priority") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("priority")}
-            title="Priority"
-            options={priorities}
+            column={table.getColumn("evaluationType")}
+            title="Evaluation Type"
+            options={evaluationTypes}
           />
         )}
         {isFiltered && (

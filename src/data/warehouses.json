@@ -1,26 +1,26 @@
 [
   {
-    "id": "id/China",
+    "id": "WHSE-E5KLAE",
     "name": "China",
     "countryName": "China"
   },
   {
-    "id": "id/Huizhou",
+    "id": "WHSE-PIOJGS",
     "name": "Huizhou",
     "countryName": "China"
   },
   {
-    "id": "id/Hong Kong",
+    "id": "WHSE-MPKJMT",
     "name": "Hong Kong",
     "countryName": "Hong Kong"
   },
   {
-    "id": "id/Mumbai",
+    "id": "WHSE-1ELLLF",
     "name": "Mumbai",
     "countryName": "India"
   },
   {
-    "id": "id/Chennai",
+    "id": "WHSE-BKOQBJ",
     "name": "Chennai",
     "countryName": "India"
   }

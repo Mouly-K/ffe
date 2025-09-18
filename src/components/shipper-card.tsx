@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { useSettings } from "@/components/settings-provider";
 
 import { EditImage } from "@/components/edit-image";
-import Flag from "./flag";
+import Flag from "@/components/flag";
 
 import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
@@ -16,7 +16,6 @@ import { CURRENCIES } from "@/interfaces/currency";
 import { COUNTRIES } from "@/interfaces/country";
 
 import warehouses from "@/data/warehouses.json";
-import tasks from "@/components/table/data/tasks.json";
 
 import {
   indexBy,
@@ -49,7 +48,7 @@ function ShipperCard({
   }, [shipper.defaultCurrency, settings.currency]);
 
   return (
-    <div className="flex-1 outline-none relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+    <div className="flex-1 outline-none relative flex flex-col gap-4 px-4 lg:px-6">
       <div className="h-full flex flex-1 flex-col space-y-8 p-8 overflow-hidden bg-background bg-clip-padding border xl:rounded-xl">
         <div className="flex items-center justify-between space-y-2">
           <div className="flex flex-col gap-2">
@@ -72,10 +71,12 @@ function ShipperCard({
                   </>
                 )}
                 onSelect={(defaultCurrency) =>
-                  setShipper({
-                    ...shipper,
-                    defaultCurrency,
-                  })
+                  startTransition(() =>
+                    setShipper({
+                      ...shipper,
+                      defaultCurrency,
+                    })
+                  )
                 }
               >
                 <Button
@@ -85,7 +86,10 @@ function ShipperCard({
                 >
                   Default Currency
                   <Separator orientation="vertical" className="mx-2 h-8" />
-                  <Flag flag={CURRENCIES[shipper.defaultCurrency].flag} />
+                  <Flag
+                    flag={CURRENCIES[shipper.defaultCurrency].flag}
+                    className="w-auto text-sm"
+                  />
                   <p>{CURRENCIES[shipper.defaultCurrency].currencyName}</p>
                   {shipper.defaultCurrency !== settings.currency && (
                     <p>
@@ -121,13 +125,15 @@ function ShipperCard({
                     </>
                   )}
                   onSelect={(warehouseId) =>
-                    setShipper({
-                      ...shipper,
-                      basedIn: {
-                        id: warehouseId,
-                        ...WAREHOUSES[warehouseId],
-                      },
-                    })
+                    startTransition(() =>
+                      setShipper({
+                        ...shipper,
+                        basedIn: {
+                          id: warehouseId,
+                          ...WAREHOUSES[warehouseId],
+                        },
+                      })
+                    )
                   }
                 >
                   <Button
@@ -137,9 +143,10 @@ function ShipperCard({
                   >
                     Based In
                     <Separator orientation="vertical" className="mx-2 h-8" />
-                    <div className="h-8 flex justify-center items-center font-[BabelStoneFlags]">
-                      {COUNTRIES[shipper.basedIn?.countryName].flag}
-                    </div>
+                    <Flag
+                      flag={COUNTRIES[shipper.basedIn?.countryName].flag}
+                      className="w-auto text-sm"
+                    />
                     {shipper.basedIn.name === shipper.basedIn.countryName
                       ? shipper.basedIn.name
                       : `${shipper.basedIn.name}, ${shipper.basedIn.countryName}`}
@@ -152,7 +159,7 @@ function ShipperCard({
             <EditImage image={shipper?.image || ""} />
           </div>
         </div>
-        <DataTable data={tasks} columns={columns} />
+        <DataTable data={shipper.shippingRoutes} columns={columns} />
       </div>
     </div>
   );
