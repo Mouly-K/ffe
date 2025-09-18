@@ -19,6 +19,8 @@ import { DataTableRowActions } from "../data-table-row-actions";
 
 import { evaluationTypes } from "../data/data";
 
+import { isEqualSansId } from "@/utils";
+
 export const columns: ColumnDef<ShippingRoute>[] = [
   {
     id: "select",
@@ -61,6 +63,10 @@ export const columns: ColumnDef<ShippingRoute>[] = [
   },
   {
     id: "route",
+    accessorFn: (row, _) => row,
+    getUniqueValues: (row, _) => {
+      return [row.originWarehouse, row.destinationWarehouse];
+    },
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Route" />
     ),
@@ -82,12 +88,16 @@ export const columns: ColumnDef<ShippingRoute>[] = [
         </button>
       );
     },
-    filterFn: (row, _, value) =>
-      value.includes(row.original.originWarehouse.countryName) ||
-      value.includes(row.original.originWarehouse.name) ||
-      value.includes(row.original.destinationWarehouse.countryName) ||
-      value.includes(row.original.destinationWarehouse.name),
+    filterFn: (row, _, filterValue) => {
+      if (!Array.isArray(filterValue)) return true;
+      return filterValue.some(
+        (value) =>
+          isEqualSansId(row.original.originWarehouse, value) ||
+          isEqualSansId(row.original.destinationWarehouse, value)
+      );
+    },
     enableSorting: false,
+    enableHiding: false,
   },
   {
     accessorKey: "evaluationType",
@@ -200,5 +210,7 @@ export const columns: ColumnDef<ShippingRoute>[] = [
   {
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
+    enableSorting: false,
+    enableHiding: false,
   },
 ];

@@ -159,7 +159,17 @@ function ShipperCard({
             <EditImage image={shipper?.image || ""} />
           </div>
         </div>
-        <DataTable data={shipper.shippingRoutes} columns={columns} />
+        <DataTable
+          data={shipper.shippingRoutes}
+          columns={columns}
+          // columnVisibility={{
+          //   name: false,
+          //   evaluationType: true,
+          //   volumetricDivisor: false,
+          //   feeSplit: true,
+          //   price: false,
+          // }}
+        />
       </div>
     </div>
   );

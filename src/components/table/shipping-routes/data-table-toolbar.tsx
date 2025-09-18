@@ -4,11 +4,12 @@ import { type Table } from "@tanstack/react-table";
 import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DataTableViewOptions } from "../data-table-view-options";
-
-import { evaluationTypes } from "../data/data";
-import { DataTableFacetedFilter } from "../data-table-faceted-filter";
 import SearchInput from "@/components/ui/search-input";
+
+import { DataTableViewOptions } from "../data-table-view-options";
+import { DataTableFacetedFilter } from "../data-table-faceted-filter";
+
+import { evaluationTypes, warehouses } from "../data/data";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -34,6 +35,13 @@ export function DataTableToolbar<TData>({
             column={table.getColumn("evaluationType")}
             title="Evaluation Type"
             options={evaluationTypes}
+          />
+        )}
+        {table.getColumn("route") && (
+          <DataTableFacetedFilter
+            column={table.getColumn("route")}
+            title="Warehouse"
+            options={warehouses}
           />
         )}
         {isFiltered && (

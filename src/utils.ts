@@ -21,6 +21,7 @@ import type {
   Shipper,
 } from "./interfaces/shipping";
 import type { SidebarRoute } from "./routes";
+import { isEqual } from "lodash";
 
 // Generic Helepr Functions
 function indexBy<T extends Record<K, T[K]>, K extends keyof T>(
@@ -47,6 +48,13 @@ function filterObject<T extends Record<K, T[K]>, K extends keyof T>(
 
 function toFixedWithoutTrailingZeros(num: number, precision: number) {
   return String(parseFloat(num.toFixed(precision)));
+}
+
+function isEqualSansId<T extends { id: string }>(obj1: T, obj2: T): boolean {
+  return isEqual(
+    (({ id, ...rest }: T) => rest)(obj1),
+    (({ id, ...rest }: T) => rest)(obj2)
+  );
 }
 
 function getVolume(dimensions: Dimensions): number {
@@ -521,6 +529,7 @@ export {
   indexBy,
   filterObject,
   toFixedWithoutTrailingZeros,
+  isEqualSansId,
   getVolume,
   getVolumetricWeight,
   findSidebarRouteNameByPath,
