@@ -94,7 +94,7 @@ async function getConversionRate(
   let source = from.toLowerCase(),
     dest = to.toLowerCase();
 
-  let exchangeRates = JSON.parse(
+  const exchangeRates = JSON.parse(
     localStorage.getItem("exchangeRates") || "{}"
   ) as Record<string, any>;
 
@@ -104,62 +104,103 @@ async function getConversionRate(
       conversion_rate: 1,
     });
 
-  const formattedDateString = `${date.getFullYear()}-${String(
-    date.getMonth() + 1
-  ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-  const storageKey = `${formattedDateString}/${source}`;
+  async function fetchFromUrl(
+    url: string,
+    storageKey: string,
+    baseUrl: string,
+    isRetry: boolean = false
+  ): Promise<{ status: string; conversion_rate: number }> {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (
+      data.error?.includes("Couldn't find the requested release version") &&
+      !isRetry
+    ) {
+      // Try previous day if release not found
+      const prevDate = new Date(date);
+      prevDate.setDate(prevDate.getDate() - 1);
+      const result = await getConversionRate(from, to, prevDate);
+      if (!result.conversion_rate) {
+        throw new Error("No conversion rate available for previous day");
+      }
+      return {
+        status: "Fetched from previous day",
+        conversion_rate: result.conversion_rate,
+      };
+    }
+
+    if (!data.date) {
+      throw new Error(`Failed to fetch conversion rate from ${url}`);
+    }
+
+    // Store the fetched rates in local storage
+    localStorage.setItem(
+      "exchangeRates",
+      JSON.stringify({
+        ...exchangeRates,
+        [storageKey]: data[source],
+      })
+    );
+
+    return {
+      status:
+        url === baseUrl ? "Fetched from API" : "Fetched from fallback API",
+      conversion_rate: data[source][dest],
+    };
+  }
+
+  function getDateString(date: Date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+  const presentDay = getDateString(date);
+  const storageKey = `${presentDay}/${source}`;
 
   try {
-    // Exchange rate API query requires currency, date, month and year
-    // To avoid frequent API calls, store the rates in local storage with key same as URL
-    // v6.exchangerate-api.com/v6/YOUR-API-KEY/history/USD/YEAR/MONTH/DAY
-
     // Check direct source -> dest rate in cache
-    if (exchangeRates[storageKey] && exchangeRates[storageKey][dest]) {
-      return Promise.resolve({
+    if (exchangeRates[storageKey]?.[dest]) {
+      return {
         status: "Fetched from cache (direct)",
         conversion_rate: exchangeRates[storageKey][dest],
-      });
+      };
     }
 
     // Check reverse dest -> source rate in cache
-    const reverseStorageKey = `${formattedDateString}/${dest}`;
-    if (
-      exchangeRates[reverseStorageKey] &&
-      exchangeRates[reverseStorageKey][source]
-    ) {
-      // Calculate reciprocal of the reverse rate
-      const reverseRate = exchangeRates[reverseStorageKey][source];
-      return Promise.resolve({
+    const reverseStorageKey = `${presentDay}/${dest}`;
+    if (exchangeRates[reverseStorageKey]?.[source]) {
+      return {
         status: "Fetched from cache (reverse)",
-        conversion_rate: 1 / reverseRate,
-      });
+        conversion_rate: 1 / exchangeRates[reverseStorageKey][source],
+      };
     }
 
     // If not found in local storage, fetch from API
-    const key = `${formattedDateString}/v1/currencies/${source}.json`;
-    return await fetch(`${import.meta.env.VITE_EXCHANGE_RATE_BASE_URL}${key}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.date) {
-          // Store the fetched rates in local storage
-          exchangeRates = {
-            ...exchangeRates,
-            [storageKey]: data[source],
-          };
-          localStorage.setItem("exchangeRates", JSON.stringify(exchangeRates));
-          return Promise.resolve({
-            status: "Fetched from API",
-            conversion_rate: data[source][dest],
-          });
-        }
-        throw new Error("Failed to fetch conversion rate");
-      });
+    const _url = {
+      date: presentDay,
+      apiVersion: "v1",
+      endpoint: `currencies/${source}.json`,
+    };
+
+    const BASE_URL = `${import.meta.env.VITE_EXCHANGE_RATE_BASE_URL}${
+      _url.date
+    }/${_url.apiVersion}/${_url.endpoint}`;
+
+    const FALLBACK_URL = `https://${_url.date}${
+      import.meta.env.VITE_EXCHANGE_RATE_FALLBACK_URL
+    }${_url.apiVersion}/${_url.endpoint}`;
+
+    // Try primary URL first, then fallback if it fails
+    return await fetchFromUrl(BASE_URL, storageKey, BASE_URL).catch(() =>
+      fetchFromUrl(FALLBACK_URL, storageKey, BASE_URL)
+    );
   } catch (error) {
     console.error("Error fetching conversion rate:", error);
     // If not found in local storage, and API call also fails
     const keys = Object.keys(exchangeRates)
-      .filter((k) => k.startsWith(source))
+      .filter((k) => k.includes(source))
       .sort();
     if (keys.length > 0) {
       // Return the rate that is present just after the requested date

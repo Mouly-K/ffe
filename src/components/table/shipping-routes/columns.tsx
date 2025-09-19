@@ -79,13 +79,11 @@ export const columns: ColumnDef<ShippingRoute>[] = [
       }
 
       return (
-        <button>
-          <div className="flex items-center gap-2 w-100">
-            <WarehouseBadge warehouse={origin} />
-            <div className="outline flex-1 outline-dashed"></div>
-            <WarehouseBadge warehouse={destination} />
-          </div>
-        </button>
+        <div className="flex items-center gap-2 w-100">
+          <WarehouseBadge warehouse={origin} />
+          <div className="outline flex-1 outline-dashed"></div>
+          <WarehouseBadge warehouse={destination} />
+        </div>
       );
     },
     filterFn: (row, _, filterValue) => {

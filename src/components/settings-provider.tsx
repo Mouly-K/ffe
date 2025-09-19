@@ -30,11 +30,10 @@ export function SettingsProvider({
   storageKey = "vite-ui-settings",
   ...props
 }: SettingsProviderProps) {
-  const [settings, setSettings] = useState<Settings>(
-    () =>
-      (JSON.parse(localStorage.getItem(storageKey) || "{}") as Settings) ||
-      defaultSettings
-  );
+  const [settings, setSettings] = useState<Settings>(() => ({
+    ...defaultSettings,
+    ...(JSON.parse(localStorage.getItem(storageKey) || "{}") as Settings),
+  }));
 
   useEffect(() => {
     const root = window.document.documentElement;
