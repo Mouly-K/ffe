@@ -16,6 +16,7 @@ import type { ShippingRoute } from "@/interfaces/shipping";
 
 import { cn } from "@/lib/utils";
 import { getConversionRate, toFixedWithoutTrailingZeros } from "@/utils";
+import { BadgePercent } from "lucide-react";
 
 export function Separator() {
   return <div className="bg-border w-0.5 mx-1 h-4"></div>;
@@ -40,34 +41,61 @@ export function BadgeWrapper({
     >
       <Flag flag={flag} className="h-4 text-sm" />
       <Separator />
-      <Suspense fallback={fallback}>{children}</Suspense>
+      <Suspense fallback={fallback}>
+        <Tooltip>{children}</Tooltip>
+      </Suspense>
     </Badge>
   );
 }
 
 function AwaitBadge({
   price,
-  currency,
+  userCurrency,
   getRate,
-}: {
+}: React.ComponentProps<"span"> & {
   price: ShippingRoute["price"];
-  currency: Currency;
+  userCurrency: Currency;
   getRate: Promise<{ status: string; conversion_rate?: number }>;
 }) {
+  if (!price) return;
   const rate = use(getRate);
   const currencySymbol = rate.conversion_rate
-    ? CURRENCIES[currency].currencySymbol
-    : price!.paidCurrency;
+    ? CURRENCIES[userCurrency].currencySymbol
+    : CURRENCIES[price.paidCurrency].currencySymbol;
 
   const amount = toFixedWithoutTrailingZeros(
     rate.conversion_rate!
-      ? price!.paidAmount * rate.conversion_rate!
-      : price!.paidAmount,
+      ? price.paidAmount * rate.conversion_rate!
+      : price.paidAmount,
     2
   );
 
   return (
-    <p className="min-w-15 text-center">{currencySymbol + " " + amount}</p>
+    <>
+      <TooltipTrigger>
+        <p className="min-w-15 text-center">{currencySymbol + " " + amount}</p>
+      </TooltipTrigger>
+      <TooltipContent className="flex flex-col gap-3 min-w-60 px-0 py-2">
+        <div className="flex flex-1 px-1.5 items-center">
+          <span className="text-xs px-1">
+            Paid Amount - {price.paidCurrency}
+          </span>
+          <span className="ml-auto mr-1 flex h-4 min-w-4 items-center justify-center font-mono text-xs text-muted-foreground">
+            {CURRENCIES[price.paidCurrency].currencySymbol} {price.paidAmount}
+          </span>
+        </div>
+        {rate && (
+          <div className="flex flex-1 px-1.5 items-center">
+            <span className="text-xs px-1">
+              Converted Amount - {userCurrency}
+            </span>
+            <span className="ml-auto mr-1 flex h-4 min-w-4 items-center justify-center font-mono text-xs text-muted-foreground">
+              {currencySymbol} {amount}
+            </span>
+          </div>
+        )}
+      </TooltipContent>
+    </>
   );
 }
 
@@ -81,22 +109,18 @@ function PriceBadge({
   const { settings } = useSettings();
 
   return (
-    <Tooltip>
-      <TooltipTrigger>
-        <BadgeWrapper
-          className={className}
-          flag={CURRENCIES[price.paidCurrency].flag}
-          fallback={<Skeleton className="h-4 w-15" />}
-        >
-          <AwaitBadge
-            price={price}
-            currency={settings.currency}
-            getRate={getConversionRate(price.paidCurrency, settings.currency)}
-          />
-        </BadgeWrapper>
-      </TooltipTrigger>
-      <TooltipContent>Hover</TooltipContent>
-    </Tooltip>
+    <BadgeWrapper
+      className={className}
+      flag={CURRENCIES[price.paidCurrency].flag}
+      fallback={<Skeleton className="h-4 w-15" />}
+    >
+      <AwaitBadge
+        className={className}
+        price={price}
+        userCurrency={settings.currency}
+        getRate={getConversionRate(price.paidCurrency, settings.currency)}
+      />
+    </BadgeWrapper>
   );
 }
 
