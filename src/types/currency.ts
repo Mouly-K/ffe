@@ -1,3 +1,4 @@
+import z from "zod";
 import { countries } from "./country";
 import { indexBy } from "@/utils";
 
@@ -12,7 +13,7 @@ const CURRENCIES: {
 type LocalPrice = {
   paidCurrency: Currency;
   paidAmount: number;
-  timeStamp: Date;
+  timeStamp: string;
 };
 
 type Price = LocalPrice & {
@@ -21,5 +22,17 @@ type Price = LocalPrice & {
   convertedAmount: number;
 };
 
-export { CURRENCIES };
+const LocalPriceSchema = z.object({
+  paidCurrency: z.string(),
+  paidAmmount: z.number(),
+  timeStamp: z.iso.datetime(),
+});
+
+const PriceSchema = LocalPriceSchema.extend({
+  convertedCurrency: z.string(),
+  conversionRate: z.number(),
+  convertedAmount: z.number(),
+});
+
+export { LocalPriceSchema, PriceSchema, CURRENCIES };
 export type { Currency, CurrencyValue, LocalPrice, Price };

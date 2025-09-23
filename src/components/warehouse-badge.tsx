@@ -1,7 +1,7 @@
-import type { Warehouse } from "@/interfaces/shipping";
+import type { Warehouse } from "@/types/shipping";
 import { Badge } from "./ui/badge";
 import Flag from "./flag";
-import { COUNTRIES } from "@/interfaces/country";
+import { COUNTRIES } from "@/types/country";
 
 export default function WarehouseBadge({
   warehouse,

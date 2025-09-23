@@ -5,6 +5,18 @@ import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/ui/search-input";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 import { DataTableViewOptions } from "../data-table-view-options";
 import { DataTableFacetedFilter } from "../data-table-faceted-filter";
@@ -56,10 +68,73 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <DataTableViewOptions table={table} />
-      <Button size="sm" className="h-8 lg:flex ml-2">
-        <Plus />
-        Add Item
-      </Button>
+      <Dialog>
+        <form>
+          <DialogTrigger asChild>
+            <Button size="sm" className="h-8 lg:flex ml-2">
+              <Plus />
+              Add Route
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Route</DialogTitle>
+              <DialogDescription>
+                You can fill out this form to add a shipping route. Click add
+                when you&apos;re done.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4">
+              <div className="grid gap-3">
+                <Label htmlFor="shippingRouteName">Name</Label>
+                <Input
+                  id="shippingRouteName"
+                  name="name"
+                  placeholder="Shipping Route Name..."
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="originWarehouse">Origin Warehouse</Label>
+                <Input
+                  id="originWarehouse"
+                  name="name"
+                  placeholder="Shipping Route Name..."
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="originWarehouse">Destination Warehouse</Label>
+                <Input
+                  id="originWarehouse"
+                  name="name"
+                  placeholder="Shipping Route Name..."
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="name-1">Evaluation Type</Label>
+                <Input
+                  id="name-1"
+                  name="name"
+                  placeholder="Shipping Route Name..."
+                />
+              </div>
+              <div className="grid gap-3">
+                <Label htmlFor="name-1">Volumetric Divisor</Label>
+                <Input
+                  id="name-1"
+                  name="name"
+                  placeholder="Shipping Route Name..."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </form>
+      </Dialog>
     </div>
   );
 }

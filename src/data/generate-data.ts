@@ -2,16 +2,16 @@ import { faker } from "@faker-js/faker";
 
 import existingWarehouses from "./warehouses.json";
 
-import { countries } from "../interfaces/country";
+import { countries } from "../types/country";
 import {
   EVALUATION_TYPE,
   type EvaluationType,
   type ShippingRoute,
   type Warehouse,
   type Shipper,
-} from "@/interfaces/shipping";
-import type { LocalPrice, Currency } from "@/interfaces/currency";
-import { CURRENCIES } from "@/interfaces/currency";
+} from "@/types/shipping";
+import type { LocalPrice, Currency } from "@/types/currency";
+import { CURRENCIES } from "@/types/currency";
 
 export function generateWarehouses() {
   // Get unique country names from our country.ts

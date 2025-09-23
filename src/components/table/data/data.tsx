@@ -1,4 +1,4 @@
-import { EVALUATION_TYPE, type Warehouse } from "@/interfaces/shipping";
+import { EVALUATION_TYPE, type Warehouse } from "@/types/shipping";
 import {
   ArrowDown,
   ArrowRight,
@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import warehousesData from "@/data/warehouses.json";
-import { COUNTRIES } from "@/interfaces/country";
+import { COUNTRIES } from "@/types/country";
 
 export type FilterOption = {
   label: string;

@@ -8,8 +8,8 @@ import { Separator as HorizontalSeparator } from "@/components/ui/separator";
 
 import { Separator, BadgeWrapper } from "@/components/price-badge";
 
-import { CURRENCIES, type Currency } from "@/interfaces/currency";
-import type { ShippingRoute } from "@/interfaces/shipping";
+import { CURRENCIES, type Currency } from "@/types/currency";
+import type { ShippingRoute } from "@/types/shipping";
 
 import { getConversionRate, toFixedWithoutTrailingZeros } from "@/utils";
 
@@ -96,7 +96,7 @@ function AwaitBadge({
             <div key={index} className="flex flex-col gap-3">
               <span className="text-muted-foreground font-medium text-xs px-2.5">
                 {`${
-                  index === 0 && arr.length > 1 ? "Converted" : "Paid"
+                  index === 0 && arr.length > 1 ? "Converted" : "Actual"
                 } Price - ${rates.currency}`}
               </span>
               {rates.items.map((item, i) => (
@@ -127,8 +127,10 @@ function AwaitBadge({
 function FeeSplitBadge({
   feeSplit,
   className,
+  timeStamp = new Date().toUTCString(),
 }: React.ComponentProps<"span"> & {
   feeSplit: ShippingRoute["feeSplit"];
+  timeStamp?: string;
 }) {
   const { settings } = useSettings();
   return (
@@ -150,7 +152,8 @@ function FeeSplitBadge({
         userCurrency={settings.currency}
         getRate={getConversionRate(
           feeSplit.firstWeightCost.paidCurrency,
-          settings.currency
+          settings.currency,
+          timeStamp
         )}
       />
     </BadgeWrapper>

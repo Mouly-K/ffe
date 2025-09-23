@@ -9,17 +9,17 @@ import {
   RUN_STATUS,
   type Dimensions,
   type ItemRoute,
-} from "./interfaces/package";
+} from "./types/package";
 
-import type { Price, Currency, LocalPrice } from "./interfaces/currency";
+import type { Price, Currency, LocalPrice } from "./types/currency";
 
-import { EVALUATION_TYPE } from "./interfaces/shipping";
+import { EVALUATION_TYPE } from "./types/shipping";
 import type {
   Warehouse,
   EvaluationType,
   ShippingRoute,
   Shipper,
-} from "./interfaces/shipping";
+} from "./types/shipping";
 import type { SidebarRoute } from "./routes";
 import { isEqual } from "lodash";
 
@@ -88,7 +88,7 @@ function findSidebarRouteNameByPath(
 async function getConversionRate(
   from: Currency,
   to: Currency,
-  date: Date = new Date()
+  date: string = new Date().toUTCString()
 ): Promise<{ status: string; conversion_rate?: number }> {
   // Converting to lowercase to match with API calls
   let source = from.toLowerCase(),
@@ -120,7 +120,7 @@ async function getConversionRate(
       // Try previous day if release not found
       const prevDate = new Date(date);
       prevDate.setDate(prevDate.getDate() - 1);
-      const result = await getConversionRate(from, to, prevDate);
+      const result = await getConversionRate(from, to, prevDate.toUTCString());
       if (!result.conversion_rate) {
         throw new Error("No conversion rate available for previous day");
       }
@@ -150,7 +150,9 @@ async function getConversionRate(
     };
   }
 
-  function getDateString(date: Date) {
+  function getDateString(dateString: string) {
+    const date = new Date(dateString);
+
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
       "0"
@@ -238,7 +240,7 @@ async function refreshPrice(
       ...price,
       conversionRate: newRate.conversion_rate!,
       convertedAmount: price.paidAmount * newRate.conversion_rate!,
-      timeStamp: new Date(),
+      timeStamp: new Date().toUTCString(),
     },
   };
 }
@@ -247,13 +249,14 @@ async function generatePrice(
   paidCurrency: Currency,
   convertedCurrency: Currency,
   paidAmount: number = 0,
-  timeStamp: Date = new Date(),
+  timeStamp: string = new Date().toUTCString(),
   conversionRate?: number,
   convertedAmount: number = 0
 ): Promise<{ status: string; price?: Price }> {
   const conversion_rate =
     conversionRate ||
-    (await getConversionRate(paidCurrency, convertedCurrency)).conversion_rate!;
+    (await getConversionRate(paidCurrency, convertedCurrency, timeStamp))
+      .conversion_rate!;
   return {
     status: "Price generated successfully! ",
     price: {
@@ -277,7 +280,7 @@ function generateShippingRoute(
   const splitPrice: LocalPrice = {
     paidCurrency: paidCurrency,
     paidAmount: 0,
-    timeStamp: new Date(),
+    timeStamp: new Date().toUTCString(),
   };
 
   return {
@@ -316,7 +319,7 @@ function generateShipper(
 
 function generateRun(
   name: string = "",
-  timeStamp: Date = new Date(),
+  timeStamp: string = new Date().toUTCString(),
   convertedCurrency: Currency
 ): Run {
   return {
@@ -387,7 +390,7 @@ function generatePackage(
   },
   weight: number = 0,
   itemCurrency: Currency,
-  timeStamp: Date = new Date(),
+  timeStamp: string = new Date().toUTCString(),
   link: string = ""
 ): Package {
   return {
@@ -412,7 +415,7 @@ async function generateItem(
   },
   weight: number = 0,
   quantity: number = 1,
-  timeStamp: Date = new Date(),
+  timeStamp: string = new Date().toUTCString(),
   link: string = "",
   itemCurrency: Currency,
   convertedCurrency: Currency,
@@ -457,7 +460,7 @@ function calculatePackageRoutePrice(pkg: Package, routeIndex: number): Price {
 
   route.price = {
     ...feeSplit.firstWeightCost,
-    timeStamp: new Date(),
+    timeStamp: new Date().toUTCString(),
     paidAmount:
       feeSplit.firstWeightCost.paidAmount +
       excessKg * feeSplit.continuedWeightCost.paidAmount +
@@ -485,7 +488,7 @@ function calculatePackageShippingPrice(pkg: Package): LocalPrice {
     {
       paidCurrency: pkg.routes[0].price!.convertedCurrency,
       paidAmount: 0,
-      timeStamp: new Date(),
+      timeStamp: new Date().toUTCString(),
     } as LocalPrice
   );
 }
@@ -542,7 +545,7 @@ function calculateItemShippingPrice(routes: ItemRoute[]): LocalPrice {
     {
       paidCurrency: routes[0].price.convertedCurrency,
       paidAmount: 0,
-      timeStamp: new Date(),
+      timeStamp: new Date().toUTCString(),
     } as LocalPrice
   );
 }
@@ -562,7 +565,7 @@ function calculateItemTotalPrice(
   return {
     paidCurrency: item.cost.convertedCurrency,
     paidAmount: item.cost.convertedAmount + shippingPrice.paidAmount,
-    timeStamp: new Date(),
+    timeStamp: new Date().toUTCString(),
   };
 }
 

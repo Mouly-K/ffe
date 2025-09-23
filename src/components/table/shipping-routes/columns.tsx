@@ -12,7 +12,7 @@ import {
   EVALUATION_TYPE,
   type EvaluationType,
   type ShippingRoute,
-} from "@/interfaces/shipping";
+} from "@/types/shipping";
 
 import { DataTableColumnHeader } from "../data-table-column-header";
 import { DataTableRowActions } from "../data-table-row-actions";

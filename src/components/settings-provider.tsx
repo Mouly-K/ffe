@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-import { THEMES, type Settings } from "@/interfaces/settings";
+import { THEMES, type Settings } from "@/types/settings";
 
 interface SettingsProviderProps {
   children: React.ReactNode;

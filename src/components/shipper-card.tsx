@@ -11,9 +11,9 @@ import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
 import { SearchSelector } from "@/components/search-selector";
 
-import type { Shipper, Warehouse } from "@/interfaces/shipping";
-import { CURRENCIES } from "@/interfaces/currency";
-import { COUNTRIES } from "@/interfaces/country";
+import type { Shipper, Warehouse } from "@/types/shipping";
+import { CURRENCIES } from "@/types/currency";
+import { COUNTRIES } from "@/types/country";
 
 import warehouses from "@/data/warehouses.json";
 

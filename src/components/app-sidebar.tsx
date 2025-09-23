@@ -19,7 +19,7 @@ import { NavSecondary } from "@/components/nav-secondary";
 import { SearchSelector } from "@/components/search-selector";
 
 import { sidebarRoutes } from "@/routes";
-import { CURRENCIES } from "@/interfaces/currency";
+import { CURRENCIES } from "@/types/currency";
 import Flag from "./flag";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

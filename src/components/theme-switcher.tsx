@@ -7,7 +7,7 @@ import { IconColorFilter } from "@tabler/icons-react";
 
 import { cn } from "@/lib/utils";
 import { useSettings } from "./settings-provider";
-import type { Theme } from "@/interfaces/settings";
+import type { Theme } from "@/types/settings";
 
 const themes = [
   {

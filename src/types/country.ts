@@ -1,3 +1,4 @@
+import z from "zod";
 import { indexBy } from "@/utils";
 
 const countries = [
@@ -248,6 +249,13 @@ const countries = [
   },
 ] as const;
 
+const CountrySchema = z.object({
+  name: z.string(),
+  currencyName: z.string(),
+  currencyTag: z.string(),
+  currencySymbol: z.string(),
+  flag: z.emoji("Expected a flag emoji"),
+});
 
 type CountryName = (typeof countries)[number]["name"];
 type CountryFlag = (typeof countries)[number]["flag"];
@@ -257,5 +265,5 @@ const COUNTRIES: {
   [key in CountryName]: Omit<(typeof countries)[number], "name">;
 } = indexBy(countries, "name");
 
-export { countries, COUNTRIES };
+export { CountrySchema, countries, COUNTRIES };
 export type { CountryName, CountryFlag };

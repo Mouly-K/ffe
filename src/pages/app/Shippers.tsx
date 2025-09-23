@@ -8,7 +8,7 @@ import ShipperCard from "@/components/shipper-card";
 import { SiteHeader } from "@/components/site-header";
 import AppContainer from "@/components/app-container";
 
-import type { Shipper } from "@/interfaces/shipping";
+import type { Shipper } from "@/types/shipping";
 
 import SHIPPERS from "@/data/shippers.json";
 
