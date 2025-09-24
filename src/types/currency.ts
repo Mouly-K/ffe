@@ -1,38 +1,28 @@
 import z from "zod";
-import { countries } from "./country";
+import { countries, CountrySchema } from "./country";
 import { indexBy } from "@/utils";
 
-type Currency = (typeof countries)[number]["currencyTag"];
-type CurrencyValue = Omit<(typeof countries)[number], "currencyTag">;
+const LocalPriceSchema = z.object({
+  paidCurrency: CountrySchema.shape.currencyTag,
+  paidAmount: z.number(),
+  timeStamp: z.iso.datetime(),
+});
+
+const PriceSchema = LocalPriceSchema.extend({
+  convertedCurrency: CountrySchema.shape.currencyTag, // the default currency to convert to chosen by user
+  conversionRate: z.number(), // storing conversion rate, in case user wants to set a custom conversion rate
+  convertedAmount: z.number(),
+});
+
+type Currency = z.infer<typeof CountrySchema.shape.currencyTag>;
+type CurrencyValue = Omit<z.infer<typeof CountrySchema>, "currencyTag">;
+type LocalPrice = z.infer<typeof LocalPriceSchema>;
+type Price = z.infer<typeof PriceSchema>;
 
 // @ts-expect-error
 const CURRENCIES: {
   [key in Currency]: CurrencyValue;
 } = indexBy(countries, "currencyTag");
-
-type LocalPrice = {
-  paidCurrency: Currency;
-  paidAmount: number;
-  timeStamp: string;
-};
-
-type Price = LocalPrice & {
-  convertedCurrency: Currency; // the default currency to convert to chosen by user
-  conversionRate: number; // if user wants to set a custom conversion rate
-  convertedAmount: number;
-};
-
-const LocalPriceSchema = z.object({
-  paidCurrency: z.string(),
-  paidAmmount: z.number(),
-  timeStamp: z.iso.datetime(),
-});
-
-const PriceSchema = LocalPriceSchema.extend({
-  convertedCurrency: z.string(),
-  conversionRate: z.number(),
-  convertedAmount: z.number(),
-});
 
 export { LocalPriceSchema, PriceSchema, CURRENCIES };
 export type { Currency, CurrencyValue, LocalPrice, Price };

@@ -250,15 +250,15 @@ const countries = [
 ] as const;
 
 const CountrySchema = z.object({
-  name: z.string(),
-  currencyName: z.string(),
-  currencyTag: z.string(),
-  currencySymbol: z.string(),
-  flag: z.emoji("Expected a flag emoji"),
+  name: z.literal(countries.map((country) => country.name)),
+  currencyName: z.literal(countries.map((country) => country.currencyName)),
+  currencyTag: z.literal(countries.map((country) => country.currencyTag)),
+  currencySymbol: z.literal(countries.map((country) => country.currencySymbol)),
+  flag: z.literal(countries.map((country) => country.flag)),
 });
 
-type CountryName = (typeof countries)[number]["name"];
-type CountryFlag = (typeof countries)[number]["flag"];
+type CountryName = z.infer<typeof CountrySchema>["name"];
+type CountryFlag = z.infer<typeof CountrySchema>["flag"];
 
 // @ts-expect-error
 const COUNTRIES: {

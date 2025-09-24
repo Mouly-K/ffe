@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { labels } from "./data/data";
-import { type Task } from "./data/schema";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
@@ -28,8 +27,6 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const task: Task = row.original as Task;
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

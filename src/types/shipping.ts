@@ -1,42 +1,23 @@
 import z from "zod";
-import type { CountryName } from "./country";
-import { LocalPriceSchema, type Currency, type LocalPrice } from "./currency";
+import { CountrySchema } from "./country";
+import { LocalPriceSchema } from "./currency";
 
 const EVALUATION_TYPE = {
   VOLUMETRIC: "Volumetric",
   ACTUAL: "Actual",
 } as const;
 
-type EvaluationType = (typeof EVALUATION_TYPE)[keyof typeof EVALUATION_TYPE];
-
-type Warehouse = {
-  id: string;
-  name: string | CountryName;
-  countryName: CountryName;
-};
+const EvaluationTypeSchema = z.literal(
+  Object.keys(
+    EVALUATION_TYPE
+  ) as unknown as (typeof EVALUATION_TYPE)[keyof typeof EVALUATION_TYPE]
+);
 
 const WarehouseSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  countryName: z.string(),
+  name: CountrySchema.shape.name.or(z.string()),
+  countryName: CountrySchema.shape.name,
 });
-
-type ShippingRoute = {
-  id: string;
-  shipperId: string;
-  name: string;
-  originWarehouse: Warehouse;
-  destinationWarehouse: Warehouse;
-  evaluationType: EvaluationType;
-  volumetricDivisor?: number; // required if evaluationType is volumetric
-  feeSplit: {
-    firstWeightKg: number;
-    firstWeightCost: LocalPrice;
-    continuedWeightCost: LocalPrice;
-    miscFee: LocalPrice; // any additional fixed fee
-  };
-  price?: LocalPrice; // Use for both setting the final calculated price as well as custom prices
-};
 
 const ShippingRouteSchema = z.object({
   id: z.string(),
@@ -44,34 +25,36 @@ const ShippingRouteSchema = z.object({
   name: z.string(),
   originWarehouse: WarehouseSchema,
   destinationWarehouse: WarehouseSchema,
-  evaluationType: z.string(),
-  volumetricDivisor: z.number().optional(),
-  feeSplit: {
+  evaluationType: EvaluationTypeSchema,
+  volumetricDivisor: z.number().optional(), // required if evaluationType is volumetric
+  feeSplit: z.object({
     firstWeightKg: z.number(),
     firstWeightCost: LocalPriceSchema,
     continuedWeightCost: LocalPriceSchema,
-    miscFee: LocalPriceSchema,
-  },
-  price: LocalPriceSchema.optional(),
+    miscFee: LocalPriceSchema, // any additional fixed fee
+  }),
+  price: LocalPriceSchema.optional(), // Use for both setting the final calculated price as well as custom prices
 });
-
-type Shipper = {
-  id: string;
-  name: string;
-  defaultCurrency: Currency;
-  image?: string;
-  basedIn?: Warehouse;
-  shippingRoutes: ShippingRoute[];
-};
 
 const ShipperSchema = z.object({
   id: z.string(),
   name: z.string(),
-  defaultCurrency: z.string(),
-  image: z.string().optional,
+  defaultCurrency: CountrySchema.shape.currencyTag,
+  image: z.string().optional(),
   basedIn: WarehouseSchema.optional(),
   shippingRoutes: z.array(ShippingRouteSchema),
 });
 
-export { WarehouseSchema, ShippingRouteSchema, ShipperSchema, EVALUATION_TYPE };
-export type { Warehouse, EvaluationType, ShippingRoute, Shipper };
+type EvaluationType = z.infer<typeof EvaluationTypeSchema>;
+type Warehouse = z.infer<typeof WarehouseSchema>;
+type ShippingRoute = z.infer<typeof ShippingRouteSchema>;
+type Shipper = z.infer<typeof ShipperSchema>;
+
+export {
+  EVALUATION_TYPE,
+  EvaluationTypeSchema,
+  WarehouseSchema,
+  ShippingRouteSchema,
+  ShipperSchema,
+};
+export type { EvaluationType, Warehouse, ShippingRoute, Shipper };

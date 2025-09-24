@@ -1,6 +1,8 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,7 @@ import { DataTableViewOptions } from "../data-table-view-options";
 import { DataTableFacetedFilter } from "../data-table-faceted-filter";
 
 import { evaluationTypes, warehouses } from "../data/data";
+import { ShippingRouteSchema, type ShippingRoute } from "@/types/shipping";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -31,6 +34,11 @@ export function DataTableToolbar<TData>({
   table,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
+
+  const form = useForm<ShippingRoute>({
+    resolver: zodResolver(ShippingRouteSchema),
+    defaultValues: {},
+  });
 
   return (
     <div className="flex items-center justify-between">
