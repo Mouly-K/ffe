@@ -299,7 +299,7 @@ function generateShippingRoute(
       continuedWeightCost: { ...splitPrice },
       miscFee: { ...splitPrice },
     },
-    ...(price && { price }),
+    price: price || { ...splitPrice },
   };
 }
 

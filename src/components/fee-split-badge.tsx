@@ -18,7 +18,7 @@ import _ from "lodash";
 function getRateObject(
   feeSplit: ShippingRoute["feeSplit"],
   userCurrency: Currency,
-  rate: number | undefined
+  rate?: number
 ) {
   return {
     currency: !rate ? feeSplit.firstWeightCost.paidCurrency : userCurrency,
@@ -65,7 +65,7 @@ function AwaitBadge({
 }) {
   const conversion_rate = use(getRate).conversion_rate;
   const rates = getRateObject(feeSplit, userCurrency, conversion_rate);
-  const originalRates = getRateObject(feeSplit, userCurrency, undefined);
+  const originalRates = getRateObject(feeSplit, userCurrency);
 
   return (
     <>

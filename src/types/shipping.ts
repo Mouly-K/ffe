@@ -2,10 +2,18 @@ import z from "zod";
 import { CountrySchema } from "./country";
 import { LocalPriceSchema } from "./currency";
 
+import { indexBy } from "@/utils";
+
+import warehouses from "@/data/warehouses.json";
+
 const EVALUATION_TYPE = {
   VOLUMETRIC: "Volumetric",
   ACTUAL: "Actual",
 } as const;
+
+const WAREHOUSES: {
+  [id: string]: Omit<Warehouse, "id">;
+} = indexBy(warehouses as Warehouse[], "id");
 
 const EvaluationTypeSchema = z.literal(
   Object.keys(
@@ -22,7 +30,14 @@ const WarehouseSchema = z.object({
 const ShippingRouteSchema = z.object({
   id: z.string(),
   shipperId: z.string(),
-  name: z.string(),
+  name: z
+    .string()
+    .min(2, {
+      message: "Name must be at least 2 characters.",
+    })
+    .max(50, {
+      message: "Name must be less than 50 characters.",
+    }),
   originWarehouse: WarehouseSchema,
   destinationWarehouse: WarehouseSchema,
   evaluationType: EvaluationTypeSchema,
@@ -51,6 +66,7 @@ type ShippingRoute = z.infer<typeof ShippingRouteSchema>;
 type Shipper = z.infer<typeof ShipperSchema>;
 
 export {
+  WAREHOUSES,
   EVALUATION_TYPE,
   EvaluationTypeSchema,
   WarehouseSchema,

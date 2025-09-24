@@ -32,17 +32,19 @@ import { DataTableToolbar } from "./shipping-routes/data-table-toolbar";
 
 import { getFacetedUniqueValues } from "./utils";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData, TValue, TMeta> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  metaData: TMeta;
   columnVisibility?: VisibilityState;
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData, TValue, TMeta>({
   columns,
   data,
+  metaData,
   columnVisibility,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue, TMeta>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -74,7 +76,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} />
+      <DataTableToolbar table={table} metaData={metaData} />
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>

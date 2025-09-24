@@ -11,21 +11,11 @@ import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
 import { SearchSelector } from "@/components/search-selector";
 
-import type { Shipper, Warehouse } from "@/types/shipping";
+import { WAREHOUSES, type Shipper } from "@/types/shipping";
 import { CURRENCIES } from "@/types/currency";
 import { COUNTRIES } from "@/types/country";
 
-import warehouses from "@/data/warehouses.json";
-
-import {
-  indexBy,
-  toFixedWithoutTrailingZeros,
-  getConversionRate,
-} from "@/utils";
-
-const WAREHOUSES: {
-  [id: string]: Omit<Warehouse, "id">;
-} = indexBy(warehouses as Warehouse[], "id");
+import { toFixedWithoutTrailingZeros, getConversionRate } from "@/utils";
 
 function ShipperCard({
   shipper,
@@ -160,8 +150,11 @@ function ShipperCard({
           </div>
         </div>
         <DataTable
-          data={shipper.shippingRoutes}
           columns={columns}
+          {...(({ shippingRoutes, ...rest }) => ({
+            data: shippingRoutes,
+            metaData: rest,
+          }))(shipper)} // Beauty is pain
           // columnVisibility={{
           //   name: false,
           //   evaluationType: true,

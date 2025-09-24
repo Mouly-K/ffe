@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils";
 
+import type { CountryFlag } from "@/types/country";
+
 function Flag({
   flag,
   className,
-}: React.ComponentProps<"span"> & { flag: string }) {
+}: React.ComponentProps<"span"> & { flag: CountryFlag }) {
   return (
     <div
       className={cn(
