@@ -101,7 +101,7 @@ function AwaitBadge({
 function PriceBadge({
   price,
   className,
-  timeStamp = new Date().toUTCString(),
+  timeStamp = new Date().toISOString(),
 }: React.ComponentProps<"span"> & {
   price: ShippingRoute["price"];
   timeStamp?: string;

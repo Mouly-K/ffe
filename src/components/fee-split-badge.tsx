@@ -127,7 +127,7 @@ function AwaitBadge({
 function FeeSplitBadge({
   feeSplit,
   className,
-  timeStamp = new Date().toUTCString(),
+  timeStamp = new Date().toISOString(),
 }: React.ComponentProps<"span"> & {
   feeSplit: ShippingRoute["feeSplit"];
   timeStamp?: string;

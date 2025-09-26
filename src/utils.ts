@@ -88,7 +88,7 @@ function findSidebarRouteNameByPath(
 async function getConversionRate(
   from: Currency,
   to: Currency,
-  date: string = new Date().toUTCString()
+  date: string = new Date().toISOString()
 ): Promise<{ status: string; conversion_rate?: number }> {
   // Converting to lowercase to match with API calls
   let source = from.toLowerCase(),
@@ -120,7 +120,7 @@ async function getConversionRate(
       // Try previous day if release not found
       const prevDate = new Date(date);
       prevDate.setDate(prevDate.getDate() - 1);
-      const result = await getConversionRate(from, to, prevDate.toUTCString());
+      const result = await getConversionRate(from, to, prevDate.toISOString());
       if (!result.conversion_rate) {
         throw new Error("No conversion rate available for previous day");
       }
@@ -240,7 +240,7 @@ async function refreshPrice(
       ...price,
       conversionRate: newRate.conversion_rate!,
       convertedAmount: price.paidAmount * newRate.conversion_rate!,
-      timeStamp: new Date().toUTCString(),
+      timeStamp: new Date().toISOString(),
     },
   };
 }
@@ -249,7 +249,7 @@ async function generatePrice(
   paidCurrency: Currency,
   convertedCurrency: Currency,
   paidAmount: number = 0,
-  timeStamp: string = new Date().toUTCString(),
+  timeStamp: string = new Date().toISOString(),
   conversionRate?: number,
   convertedAmount: number = 0
 ): Promise<{ status: string; price?: Price }> {
@@ -280,7 +280,7 @@ function generateShippingRoute(
   const splitPrice: LocalPrice = {
     paidCurrency: paidCurrency,
     paidAmount: 0,
-    timeStamp: new Date().toUTCString(),
+    timeStamp: new Date().toISOString(),
   };
 
   return {
@@ -294,7 +294,7 @@ function generateShippingRoute(
       volumetricDivisor: 8000,
     }),
     feeSplit: {
-      firstWeightKg: 1,
+      firstWeightKg: 0,
       firstWeightCost: { ...splitPrice },
       continuedWeightCost: { ...splitPrice },
       miscFee: { ...splitPrice },
@@ -319,7 +319,7 @@ function generateShipper(
 
 function generateRun(
   name: string = "",
-  timeStamp: string = new Date().toUTCString(),
+  timeStamp: string = new Date().toISOString(),
   convertedCurrency: Currency
 ): Run {
   return {
@@ -390,7 +390,7 @@ function generatePackage(
   },
   weight: number = 0,
   itemCurrency: Currency,
-  timeStamp: string = new Date().toUTCString(),
+  timeStamp: string = new Date().toISOString(),
   link: string = ""
 ): Package {
   return {
@@ -415,7 +415,7 @@ async function generateItem(
   },
   weight: number = 0,
   quantity: number = 1,
-  timeStamp: string = new Date().toUTCString(),
+  timeStamp: string = new Date().toISOString(),
   link: string = "",
   itemCurrency: Currency,
   convertedCurrency: Currency,
@@ -460,7 +460,7 @@ function calculatePackageRoutePrice(pkg: Package, routeIndex: number): Price {
 
   route.price = {
     ...feeSplit.firstWeightCost,
-    timeStamp: new Date().toUTCString(),
+    timeStamp: new Date().toISOString(),
     paidAmount:
       feeSplit.firstWeightCost.paidAmount +
       excessKg * feeSplit.continuedWeightCost.paidAmount +
@@ -488,7 +488,7 @@ function calculatePackageShippingPrice(pkg: Package): LocalPrice {
     {
       paidCurrency: pkg.routes[0].price!.convertedCurrency,
       paidAmount: 0,
-      timeStamp: new Date().toUTCString(),
+      timeStamp: new Date().toISOString(),
     } as LocalPrice
   );
 }
@@ -545,7 +545,7 @@ function calculateItemShippingPrice(routes: ItemRoute[]): LocalPrice {
     {
       paidCurrency: routes[0].price.convertedCurrency,
       paidAmount: 0,
-      timeStamp: new Date().toUTCString(),
+      timeStamp: new Date().toISOString(),
     } as LocalPrice
   );
 }
@@ -565,7 +565,7 @@ function calculateItemTotalPrice(
   return {
     paidCurrency: item.cost.convertedCurrency,
     paidAmount: item.cost.convertedAmount + shippingPrice.paidAmount,
-    timeStamp: new Date().toUTCString(),
+    timeStamp: new Date().toISOString(),
   };
 }
 

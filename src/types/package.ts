@@ -1,6 +1,6 @@
 import z from "zod";
 import { PriceSchema } from "./currency";
-import { ShippingRouteSchema } from "./shipping";
+import { ActualRouteBaseSchema, VolumetricRouteBaseSchema } from "./shipping";
 import { CountrySchema } from "./country";
 
 const PACKAGE_STATUS = {
@@ -18,13 +18,13 @@ const RUN_STATUS = {
 } as const;
 
 const PackageStatusSchema = z.literal(
-  Object.keys(
+  Object.values(
     PACKAGE_STATUS
   ) as unknown as (typeof PACKAGE_STATUS)[keyof typeof PACKAGE_STATUS]
 );
 
 const RunStatusSchema = z.literal(
-  Object.keys(
+  Object.values(
     RUN_STATUS
   ) as unknown as (typeof RUN_STATUS)[keyof typeof RUN_STATUS]
 );
@@ -47,7 +47,7 @@ const ItemSchema = z.object({
   image: z.string().optional(),
 });
 
-const PackageRouteSchema = ShippingRouteSchema.extend({
+const PackageRouteBaseSchema = z.object({
   feeSplit: z.object({
     firstWeightKg: z.number(),
     firstWeightCost: PriceSchema,
@@ -60,6 +60,17 @@ const PackageRouteSchema = ShippingRouteSchema.extend({
   shippedOn: z.iso.datetime().optional(),
   deliveredOn: z.iso.datetime().optional(),
 });
+
+const PackageRouteSchema = z.discriminatedUnion("evaluationType", [
+  z.object({
+    ...ActualRouteBaseSchema.shape,
+    ...PackageRouteBaseSchema.shape,
+  }),
+  z.object({
+    ...VolumetricRouteBaseSchema.shape,
+    ...PackageRouteBaseSchema.shape,
+  }),
+]);
 
 const ItemRouteSchema = z.object({
   routeId: z.string(),

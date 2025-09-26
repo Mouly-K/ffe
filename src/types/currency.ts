@@ -4,11 +4,12 @@ import { indexBy } from "@/utils";
 
 const LocalPriceSchema = z.object({
   paidCurrency: CountrySchema.shape.currencyTag,
-  paidAmount: z.number(),
+  paidAmount: z.number().positive("Must be > 0"),
   timeStamp: z.iso.datetime(),
 });
 
-const PriceSchema = LocalPriceSchema.extend({
+const PriceSchema = z.object({
+  ...LocalPriceSchema.shape,
   convertedCurrency: CountrySchema.shape.currencyTag, // the default currency to convert to chosen by user
   conversionRate: z.number(), // storing conversion rate, in case user wants to set a custom conversion rate
   convertedAmount: z.number(),

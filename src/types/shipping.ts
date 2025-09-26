@@ -16,7 +16,7 @@ const WAREHOUSES: {
 } = indexBy(warehouses as Warehouse[], "id");
 
 const EvaluationTypeSchema = z.literal(
-  Object.keys(
+  Object.values(
     EVALUATION_TYPE
   ) as unknown as (typeof EVALUATION_TYPE)[keyof typeof EVALUATION_TYPE]
 );
@@ -27,29 +27,45 @@ const WarehouseSchema = z.object({
   countryName: CountrySchema.shape.name,
 });
 
-const ShippingRouteSchema = z.object({
+// Base schema with all shared fields
+const ShippingRouteBaseSchema = z.object({
   id: z.string(),
   shipperId: z.string(),
   name: z
     .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(50, {
-      message: "Name must be less than 50 characters.",
-    }),
+    .min(2, { message: "Name must be at least 2 characters." })
+    .max(50, { message: "Name must be less than 50 characters." }),
   originWarehouse: WarehouseSchema,
   destinationWarehouse: WarehouseSchema,
-  evaluationType: EvaluationTypeSchema,
-  volumetricDivisor: z.number().optional(), // required if evaluationType is volumetric
   feeSplit: z.object({
     firstWeightKg: z.number(),
     firstWeightCost: LocalPriceSchema,
     continuedWeightCost: LocalPriceSchema,
-    miscFee: LocalPriceSchema, // any additional fixed fee
+    miscFee: LocalPriceSchema,
   }),
-  price: LocalPriceSchema.optional(), // Use for both setting the final calculated price as well as custom prices
+  price: LocalPriceSchema.optional(),
 });
+
+const ActualRouteBaseSchema = z.object({
+  ...ShippingRouteBaseSchema.shape,
+  evaluationType: z.literal(EVALUATION_TYPE.ACTUAL),
+  volumetricDivisor: z.number().optional().nullable(),
+});
+
+const VolumetricRouteBaseSchema = z.object({
+  ...ShippingRouteBaseSchema.shape,
+  evaluationType: z.literal(EVALUATION_TYPE.VOLUMETRIC),
+  volumetricDivisor: z
+    .number()
+    .positive("Must be > 0")
+    .multipleOf(100, "Must be a multiple of 100"),
+});
+
+// Discriminated union for evaluation type
+const ShippingRouteSchema = z.discriminatedUnion("evaluationType", [
+  ActualRouteBaseSchema,
+  VolumetricRouteBaseSchema,
+]);
 
 const ShipperSchema = z.object({
   id: z.string(),
@@ -70,6 +86,8 @@ export {
   EVALUATION_TYPE,
   EvaluationTypeSchema,
   WarehouseSchema,
+  VolumetricRouteBaseSchema,
+  ActualRouteBaseSchema,
   ShippingRouteSchema,
   ShipperSchema,
 };
