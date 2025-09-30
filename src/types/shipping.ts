@@ -39,10 +39,16 @@ const ShippingRouteBaseSchema = z.object({
   destinationWarehouse: WarehouseSchema,
   feeSplit: z.object({
     paidCurrency: CountrySchema.shape.currencyTag,
-    firstWeightKg: z.number().positive("Must be > 0"),
-    firstWeightAmount: z.number().positive("Must be > 0"),
-    continuedWeightAmount: z.number().positive("Must be > 0"),
-    miscAmount: z.number().positive("Must be > 0"),
+    firstWeightKg: z.number().positive("First weight must be greater than 0"),
+    firstWeightAmount: z
+      .number()
+      .positive("First weight amount must be greater than 0"),
+    continuedWeightAmount: z
+      .number()
+      .positive("Continued weight amount must be greater than 0"),
+    miscAmount: z
+      .number()
+      .positive("Miscellaneous amount must be greater than 0"),
     timeStamp: z.iso.datetime(),
   }),
   feeOverride: z.boolean(),

@@ -2,11 +2,7 @@
 
 import { type ReactNode } from "react";
 import { type Table } from "@tanstack/react-table";
-import {
-  useForm,
-  type ControllerRenderProps,
-  type SubmitHandler,
-} from "react-hook-form";
+import { useForm, type FieldError, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ChevronsUpDown,
@@ -56,7 +52,6 @@ import { Separator } from "@/components/ui/separator";
 import { SearchSelector } from "@/components/search-selector";
 import SearchInput from "@/components/ui/search-input";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import Flag from "@/components/flag";
 import { DataTableViewOptions } from "@/components/table/data-table-view-options";
 import { DataTableFacetedFilter } from "@/components/table/data-table-faceted-filter";
@@ -204,17 +199,16 @@ export function DataTableToolbar<TData>({
   }
 
   function AmountInput({
-    field,
+    name,
+    value,
+    onChange,
     currency,
     tooltip,
     renderIcon,
   }: {
-    field: ControllerRenderProps<
-      ShippingRoute,
-      | "feeSplit.firstWeightAmount"
-      | "feeSplit.continuedWeightAmount"
-      | "feeSplit.miscAmount"
-    >;
+    name: string;
+    value?: number;
+    onChange: (value: number) => void;
     currency: Currency;
     tooltip: string;
     renderIcon?: () => ReactNode;
@@ -228,13 +222,13 @@ export function DataTableToolbar<TData>({
             <FormControl>
               <Input
                 type="number"
-                name={field.name}
+                name={name}
                 placeholder="Amount..."
                 className="font-mono tabular-nums w-21 min-w-21 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
-                value={field.value || ""}
+                value={value || ""}
                 onChange={(e) => {
                   e.target.style.width = e.target.value.length + 3 + "ch";
-                  field.onChange(+e.target.value);
+                  onChange(+e.target.value);
                 }}
               />
             </FormControl>
@@ -249,29 +243,11 @@ export function DataTableToolbar<TData>({
 
   // Helper to get the first error message from feeSplit
   function getFeeSplitError(errors: any) {
-    console.log(errors?.feeSplit);
-    if (!errors?.feeSplit) return null;
-    const feeSplitFields = [
-      "firstWeightKg",
-      "firstWeightAmount",
-      "continuedWeightAmount",
-      "miscAmount",
-    ];
-    for (const field of feeSplitFields) {
-      const error = errors.feeSplit[field];
-      if (error) {
-        // If it's a nested object (e.g., LocalPrice), get its first error
-        if (typeof error === "object" && error !== null) {
-          const nestedKey = Object.keys(error)[0];
-          return error[nestedKey]?.message || error.message;
-        }
-        return error.message;
-      }
+    if (!errors) return null;
+    for (const error of Object.values(errors) as FieldError[]) {
+      return error.message;
     }
-    return null;
   }
-
-  const feeSplitError = getFeeSplitError(form.formState.errors);
 
   return (
     <div className="flex items-center justify-between">
@@ -483,103 +459,94 @@ export function DataTableToolbar<TData>({
                     />
                   </div>
                 </div>
-                <div className="grid gap-3">
-                  <div className="flex gap-4">
-                    <Label>Fee Split</Label>
-                    <ToggleGroup
-                      type="single"
-                      value={"bold"}
-                      onValueChange={() => {}}
-                    >
-                      <ToggleGroupItem
-                        value="bold"
-                        aria-label="Toggle bold"
-                        className="h-6"
+                <FormField
+                  control={form.control}
+                  name="feeSplit"
+                  render={({ field, fieldState }) => (
+                    <FormItem className="grid gap-3">
+                      <div className="flex gap-4">
+                        <FormLabel>Fee Split</FormLabel>
+                        <ToggleGroup
+                          type="single"
+                          value={"bold"}
+                          onValueChange={() => {}}
+                        >
+                          <ToggleGroupItem
+                            value="bold"
+                            aria-label="Toggle bold"
+                            className="h-6"
+                          >
+                            <Split className="size-4" />
+                          </ToggleGroupItem>
+                          <ToggleGroupItem
+                            value="italic"
+                            aria-label="Toggle italic"
+                            className="h-6"
+                          >
+                            <DollarSign className="size-4" />
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className="dark:bg-input/30 border-input h-9 rounded-md border bg-transparent px-0 py-0 text-base shadow-xs md:text-sm flex w-full justify-between items-center font-mono tabular-nums text-muted-foreground"
                       >
-                        <Split className="size-4" />
-                      </ToggleGroupItem>
-                      <ToggleGroupItem
-                        value="italic"
-                        aria-label="Toggle italic"
-                        className="h-6"
-                      >
-                        <DollarSign className="size-4" />
-                      </ToggleGroupItem>
-                    </ToggleGroup>
-                  </div>
-                  <Badge
-                    variant="outline"
-                    className="dark:bg-input/30 border-input h-9 rounded-md border bg-transparent px-0 py-0 text-base shadow-xs md:text-sm flex w-full justify-between items-center font-mono tabular-nums text-muted-foreground"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="feeSplit.paidCurrency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <CurrencySelector
-                              name={field.name}
-                              currency={field.value}
-                              onSelect={(currency) => {
-                                field.onChange(currency);
-                                form.trigger("feeSplit.paidCurrency");
-                              }}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Separator orientation="vertical" />
-                    <FormField
-                      control={form.control}
-                      name="feeSplit.firstWeightKg"
-                      render={({ field }) => (
+                        <CurrencySelector
+                          name="feeSplit.paidCurrency"
+                          currency={field.value.paidCurrency}
+                          onSelect={(paidCurrency) =>
+                            field.onChange({ ...field.value, paidCurrency })
+                          }
+                        />
+                        <Separator orientation="vertical" />
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <FormItem className="flex items-center">
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  name={field.name}
-                                  placeholder="1st..."
-                                  className="font-mono tabular-nums w-16 min-w-16 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
-                                  value={field.value || ""}
-                                  onChange={(e) => {
-                                    e.target.style.width =
-                                      e.target.value.length + 3 + "ch";
-                                    field.onChange(+e.target.value);
-                                  }}
-                                />
-                              </FormControl>
+                            <div className="flex items-center">
+                              <Input
+                                type="number"
+                                name="feeSplit.firstWeightKg"
+                                placeholder="1st..."
+                                className="font-mono tabular-nums w-16 min-w-16 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
+                                value={field.value.firstWeightKg || ""}
+                                onChange={(e) => {
+                                  e.target.style.width =
+                                    e.target.value.length + 3 + "ch";
+                                  field.onChange({
+                                    ...field.value,
+                                    firstWeightKg: +e.target.value,
+                                  });
+                                }}
+                              />
                               <p className="text-xs mr-3">kg</p>
-                            </FormItem>
+                            </div>
                           </TooltipTrigger>
                           <TooltipContent className="flex flex-col items-center gap-1">
                             The first chargeable weight of the route in kgs
                           </TooltipContent>
                         </Tooltip>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="feeSplit.firstWeightAmount"
-                      render={({ field }) => (
                         <AmountInput
-                          field={field}
-                          currency={form.getValues("feeSplit.paidCurrency")}
+                          name="feeSplit.firstWeightAmount"
+                          value={field.value.firstWeightAmount}
+                          onChange={(firstWeightAmount) =>
+                            field.onChange({
+                              ...field.value,
+                              firstWeightAmount,
+                            })
+                          }
+                          currency={field.value.paidCurrency}
                           tooltip="Amount to be paid for the first chargeable weight"
                         />
-                      )}
-                    />
-                    <Separator orientation="vertical" />
-                    <FormField
-                      control={form.control}
-                      name="feeSplit.continuedWeightAmount"
-                      render={({ field }) => (
+                        <Separator orientation="vertical" />
                         <AmountInput
-                          field={field}
-                          currency={form.getValues("feeSplit.paidCurrency")}
+                          name="feeSplit.continuedWeightAmount"
+                          value={field.value.continuedWeightAmount}
+                          onChange={(continuedWeightAmount) =>
+                            field.onChange({
+                              ...field.value,
+                              continuedWeightAmount,
+                            })
+                          }
+                          currency={field.value.paidCurrency}
                           tooltip="Amount to be paid for each additional kg"
                           renderIcon={() => (
                             <>
@@ -591,16 +558,14 @@ export function DataTableToolbar<TData>({
                             </>
                           )}
                         />
-                      )}
-                    />
-                    <Separator orientation="vertical" />
-                    <FormField
-                      control={form.control}
-                      name="feeSplit.miscAmount"
-                      render={({ field }) => (
+                        <Separator orientation="vertical" />
                         <AmountInput
-                          field={field}
-                          currency={form.getValues("feeSplit.paidCurrency")}
+                          name="feeSplit.miscAmount"
+                          value={field.value.miscAmount}
+                          onChange={(miscAmount) =>
+                            field.onChange({ ...field.value, miscAmount })
+                          }
+                          currency={field.value.paidCurrency}
                           tooltip="Any miscellaneous fees"
                           renderIcon={() => (
                             <CircleDollarSign
@@ -609,13 +574,15 @@ export function DataTableToolbar<TData>({
                             />
                           )}
                         />
+                      </Badge>
+                      {fieldState.error && (
+                        <p className="text-destructive text-sm">
+                          {getFeeSplitError(fieldState.error)}
+                        </p>
                       )}
-                    />
-                  </Badge>
-                  {feeSplitError && (
-                    <p className="text-destructive text-sm">{feeSplitError}</p>
+                    </FormItem>
                   )}
-                </div>
+                />
               </div>
               <DialogFooter>
                 <DialogClose asChild>
