@@ -33,6 +33,40 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   isValueSelected?: (selectedValue: any, optionValue: any) => boolean;
 }
 
+const getKey = (optionValue: any) => {
+  return typeof optionValue === "object" && optionValue !== null
+    ? optionValue.id
+    : optionValue;
+};
+
+const renderItem = (option: FilterOption): React.ReactNode => {
+  if (typeof option.value === "string") return <span>{option.label}</span>;
+  const { id, ...item } = option.value;
+  return (
+    <div className="grid flex-1 text-left text-sm leading-tight">
+      <span className="truncate font-medium">{option.label}</span>
+      {Object.keys(item).map(
+        (k) =>
+          item[k] !== option.label && (
+            <span key={k} className="text-muted-foreground truncate text-xs">
+              {item[k]}
+            </span>
+          )
+      )}
+    </div>
+  );
+};
+
+const renderCount = (count: number | undefined): React.ReactNode => {
+  return (
+    count && (
+      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
+        {count}
+      </span>
+    )
+  );
+};
+
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
@@ -56,30 +90,6 @@ export function DataTableFacetedFilter<TData, TValue>({
     return selectedValues.includes(optionValue);
   };
 
-  const getKey = (optionValue: any) => {
-    return typeof optionValue === "object" && optionValue !== null
-      ? optionValue.id
-      : optionValue;
-  };
-
-  const renderItem = (option: FilterOption): React.ReactNode => {
-    if (typeof option.value === "string") return <span>{option.label}</span>;
-    const { id, ...item } = option.value;
-    return (
-      <div className="grid flex-1 text-left text-sm leading-tight">
-        <span className="truncate font-medium">{option.label}</span>
-        {Object.keys(item).map(
-          (k) =>
-            item[k] !== option.label && (
-              <span key={k} className="text-muted-foreground truncate text-xs">
-                {item[k]}
-              </span>
-            )
-        )}
-      </div>
-    );
-  };
-
   const getCount = (option: FilterOption): number | undefined => {
     if (!facets) return;
     if (typeof option.value === "string") return facets.get(option.value);
@@ -87,17 +97,6 @@ export function DataTableFacetedFilter<TData, TValue>({
     for (let facet of Array.from(facets)) {
       if (isEqualSansId(facet[0], option.value)) return facet[1];
     }
-  };
-
-  const renderCount = (option: FilterOption): React.ReactNode => {
-    const count = getCount(option);
-    return (
-      count && (
-        <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-          {count}
-        </span>
-      )
-    );
   };
 
   return (
@@ -184,7 +183,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                       )}
                       {option.flag && <Flag flag={option.flag} />}
                       {renderItem(option)}
-                      {renderCount(option)}
+                      {renderCount(getCount(option))}
                     </CommandItem>
                   );
                 })}

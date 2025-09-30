@@ -54,9 +54,7 @@ export const columns: ColumnDef<ShippingRoute>[] = [
     cell: ({ row }) => {
       return (
         <div className="flex space-x-2">
-          <span className="max-w-[500px] truncate">
-            {row.getValue("name")}
-          </span>
+          <span className="max-w-[500px] truncate">{row.getValue("name")}</span>
         </div>
       );
     },
@@ -174,13 +172,13 @@ export const columns: ColumnDef<ShippingRoute>[] = [
       const B = rowB.getValue(id) as ShippingRoute["feeSplit"];
 
       const a =
-          A.firstWeightKg * A.firstWeightCost.paidAmount +
-          A.continuedWeightCost.paidAmount +
-          A.miscFee.paidAmount,
+          A.firstWeightKg * A.firstWeightAmount +
+          A.continuedWeightAmount +
+          A.miscAmount,
         b =
-          B.firstWeightKg * B.firstWeightCost.paidAmount +
-          B.continuedWeightCost.paidAmount +
-          B.miscFee.paidAmount;
+          B.firstWeightKg * B.firstWeightAmount +
+          B.continuedWeightAmount +
+          B.miscAmount;
 
       return a - b;
     },

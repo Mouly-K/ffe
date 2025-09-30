@@ -16,6 +16,7 @@ import { CURRENCIES } from "@/types/currency";
 import { COUNTRIES } from "@/types/country";
 
 import { toFixedWithoutTrailingZeros, getConversionRate } from "@/utils";
+import { DataTableToolbar } from "./table/shipping-routes/data-table-toolbar";
 
 function ShipperCard({
   shipper,
@@ -151,10 +152,10 @@ function ShipperCard({
         </div>
         <DataTable
           columns={columns}
-          {...(({ shippingRoutes, ...rest }) => ({
-            data: shippingRoutes,
-            metaData: rest,
-          }))(shipper)} // Beauty is pain
+          data={shipper.shippingRoutes}
+          renderToolbar={(table) => (
+            <DataTableToolbar table={table} metaData={shipper} />
+          )}
           // columnVisibility={{
           //   name: false,
           //   evaluationType: true,

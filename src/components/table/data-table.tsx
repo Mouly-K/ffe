@@ -15,6 +15,7 @@ import type {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  Table as TTable,
   VisibilityState,
 } from "@tanstack/react-table";
 
@@ -28,23 +29,22 @@ import {
 } from "@/components/ui/table";
 
 import { DataTablePagination } from "./data-table-pagination";
-import { DataTableToolbar } from "./shipping-routes/data-table-toolbar";
 
 import { getFacetedUniqueValues } from "./utils";
 
-interface DataTableProps<TData, TValue, TMeta> {
+interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  metaData: TMeta;
   columnVisibility?: VisibilityState;
+  renderToolbar: (table: TTable<TData>) => React.ReactNode;
 }
 
-export function DataTable<TData, TValue, TMeta>({
+export function DataTable<TData, TValue>({
   columns,
   data,
-  metaData,
   columnVisibility,
-}: DataTableProps<TData, TValue, TMeta>) {
+  renderToolbar,
+}: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -76,7 +76,7 @@ export function DataTable<TData, TValue, TMeta>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={table} metaData={metaData} />
+      {renderToolbar(table)}
       <div className="overflow-hidden rounded-md border">
         <Table>
           <TableHeader>

@@ -13,13 +13,13 @@ import {
 } from "lucide-react";
 
 import warehousesData from "@/data/warehouses.json";
-import { COUNTRIES } from "@/types/country";
+import { COUNTRIES, type CountryFlag } from "@/types/country";
 
 export type FilterOption = {
   label: string;
   value: string | Record<string, string>;
   icon?: React.ComponentType<{ className?: string }>;
-  flag?: string;
+  flag?: CountryFlag;
 };
 
 export const evaluationTypes: FilterOption[] = [
