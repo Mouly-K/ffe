@@ -4,7 +4,7 @@ import { indexBy } from "@/utils";
 
 const LocalPriceSchema = z.object({
   paidCurrency: CountrySchema.shape.currencyTag,
-  paidAmount: z.number().positive("Must be > 0"),
+  paidAmount: z.number().positive("Paid amount must be greater than 0"),
   timeStamp: z.iso.datetime(),
 });
 
