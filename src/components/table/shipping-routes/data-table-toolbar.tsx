@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { type Table } from "@tanstack/react-table";
 import {
   useForm,
@@ -96,10 +96,6 @@ export function DataTableToolbar<TData>({
       metaData.basedIn || (warehousesData[0] as Warehouse)
     ),
   });
-
-  useEffect(() => {
-    console.log(form.formState.errors);
-  }, [form.formState.errors]);
 
   const onSubmit: SubmitHandler<ShippingRoute> = (value) => {
     console.log(value);
@@ -232,12 +228,13 @@ export function DataTableToolbar<TData>({
             <FormControl>
               <Input
                 type="number"
+                name={field.name}
                 placeholder="Amount..."
                 className="font-mono tabular-nums w-21 min-w-21 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
                 value={field.value || ""}
                 onChange={(e) => {
                   e.target.style.width = e.target.value.length + 3 + "ch";
-                  field.onChange(field.value);
+                  field.onChange(+e.target.value);
                 }}
               />
             </FormControl>
@@ -249,6 +246,32 @@ export function DataTableToolbar<TData>({
       </Tooltip>
     );
   }
+
+  // Helper to get the first error message from feeSplit
+  function getFeeSplitError(errors: any) {
+    console.log(errors?.feeSplit);
+    if (!errors?.feeSplit) return null;
+    const feeSplitFields = [
+      "firstWeightKg",
+      "firstWeightAmount",
+      "continuedWeightAmount",
+      "miscAmount",
+    ];
+    for (const field of feeSplitFields) {
+      const error = errors.feeSplit[field];
+      if (error) {
+        // If it's a nested object (e.g., LocalPrice), get its first error
+        if (typeof error === "object" && error !== null) {
+          const nestedKey = Object.keys(error)[0];
+          return error[nestedKey]?.message || error.message;
+        }
+        return error.message;
+      }
+    }
+    return null;
+  }
+
+  const feeSplitError = getFeeSplitError(form.formState.errors);
 
   return (
     <div className="flex items-center justify-between">
@@ -499,11 +522,7 @@ export function DataTableToolbar<TData>({
                               currency={field.value}
                               onSelect={(currency) => {
                                 field.onChange(currency);
-                                // Some weird issue where the form state doesn't update
-                                form.trigger([
-                                  // Also, passing in a single stirng, but having it in an array works somehow
-                                  "feeSplit.paidCurrency",
-                                ]);
+                                form.trigger("feeSplit.paidCurrency");
                               }}
                             />
                           </FormControl>
@@ -593,6 +612,9 @@ export function DataTableToolbar<TData>({
                       )}
                     />
                   </Badge>
+                  {feeSplitError && (
+                    <p className="text-destructive text-sm">{feeSplitError}</p>
+                  )}
                 </div>
               </div>
               <DialogFooter>
