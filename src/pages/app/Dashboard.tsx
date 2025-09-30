@@ -1,7 +1,13 @@
 import AppContainer from "@/components/app-container";
 import { SiteHeader } from "@/components/site-header";
+import { generateShippers } from "@/data/generate-data";
+import { useEffect } from "react";
 
 function Dashboard() {
+  useEffect(() => {
+    generateShippers();
+  }, []);
+
   return (
     <>
       <SiteHeader>

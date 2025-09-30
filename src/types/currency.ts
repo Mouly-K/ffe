@@ -12,7 +12,6 @@ const PriceSchema = z.object({
   ...LocalPriceSchema.shape,
   convertedCurrency: CountrySchema.shape.currencyTag, // the default currency to convert to chosen by user
   conversionRate: z.number(), // storing conversion rate, in case user wants to set a custom conversion rate
-  convertedAmount: z.number(),
 });
 
 type Currency = z.infer<typeof CountrySchema.shape.currencyTag>;

@@ -1,6 +1,10 @@
 import z from "zod";
 import { PriceSchema } from "./currency";
-import { ActualRouteBaseSchema, VolumetricRouteBaseSchema } from "./shipping";
+import {
+  ActualRouteBaseSchema,
+  ShippingRouteBaseSchema,
+  VolumetricRouteBaseSchema,
+} from "./shipping";
 import { CountrySchema } from "./country";
 
 const PACKAGE_STATUS = {
@@ -49,12 +53,11 @@ const ItemSchema = z.object({
 
 const PackageRouteBaseSchema = z.object({
   feeSplit: z.object({
-    firstWeightKg: z.number(),
-    firstWeightCost: PriceSchema,
-    continuedWeightCost: PriceSchema,
-    miscFee: PriceSchema,
+    ...ShippingRouteBaseSchema.shape.feeSplit.shape,
+    convertedCurrency: CountrySchema.shape.currencyTag,
+    conversionRate: z.number(),
   }),
-  price: PriceSchema.optional(),
+  price: PriceSchema,
   trackingNumber: z.string(),
   status: PackageStatusSchema,
   shippedOn: z.iso.datetime().optional(),

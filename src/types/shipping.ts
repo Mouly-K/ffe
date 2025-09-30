@@ -38,12 +38,15 @@ const ShippingRouteBaseSchema = z.object({
   originWarehouse: WarehouseSchema,
   destinationWarehouse: WarehouseSchema,
   feeSplit: z.object({
-    firstWeightKg: z.number(),
-    firstWeightCost: LocalPriceSchema,
-    continuedWeightCost: LocalPriceSchema,
-    miscFee: LocalPriceSchema,
+    paidCurrency: CountrySchema.shape.currencyTag,
+    firstWeightKg: z.number().positive("Must be > 0"),
+    firstWeightAmount: z.number().positive("Must be > 0"),
+    continuedWeightAmount: z.number().positive("Must be > 0"),
+    miscAmount: z.number().positive("Must be > 0"),
+    timeStamp: z.iso.datetime(),
   }),
-  price: LocalPriceSchema.optional(),
+  feeOverride: z.boolean(),
+  price: LocalPriceSchema,
 });
 
 const ActualRouteBaseSchema = z.object({
@@ -86,6 +89,7 @@ export {
   EVALUATION_TYPE,
   EvaluationTypeSchema,
   WarehouseSchema,
+  ShippingRouteBaseSchema,
   VolumetricRouteBaseSchema,
   ActualRouteBaseSchema,
   ShippingRouteSchema,

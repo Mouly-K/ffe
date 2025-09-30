@@ -239,7 +239,6 @@ async function refreshPrice(
     price: {
       ...price,
       conversionRate: newRate.conversion_rate!,
-      convertedAmount: price.paidAmount * newRate.conversion_rate!,
       timeStamp: new Date().toISOString(),
     },
   };
@@ -250,8 +249,7 @@ async function generatePrice(
   convertedCurrency: Currency,
   paidAmount: number = 0,
   timeStamp: string = new Date().toISOString(),
-  conversionRate?: number,
-  convertedAmount: number = 0
+  conversionRate?: number
 ): Promise<{ status: string; price?: Price }> {
   const conversion_rate =
     conversionRate ||
@@ -265,7 +263,6 @@ async function generatePrice(
       timeStamp,
       convertedCurrency: convertedCurrency || paidCurrency,
       conversionRate: conversion_rate,
-      convertedAmount: convertedAmount || paidAmount * conversion_rate,
     },
   };
 }
@@ -277,11 +274,7 @@ function generateShippingRoute(
   evaluationType: EvaluationType = EVALUATION_TYPE.ACTUAL,
   price?: LocalPrice
 ): ShippingRoute {
-  const splitPrice: LocalPrice = {
-    paidCurrency: paidCurrency,
-    paidAmount: 0,
-    timeStamp: new Date().toISOString(),
-  };
+  const timeStamp = new Date().toISOString();
 
   return {
     id: uuidv4(),
@@ -294,12 +287,19 @@ function generateShippingRoute(
       volumetricDivisor: 8000,
     }),
     feeSplit: {
+      paidCurrency,
       firstWeightKg: 0,
-      firstWeightCost: { ...splitPrice },
-      continuedWeightCost: { ...splitPrice },
-      miscFee: { ...splitPrice },
+      firstWeightAmount: 0,
+      continuedWeightAmount: 0,
+      miscAmount: 0,
+      timeStamp,
     },
-    price: price || { ...splitPrice },
+    feeOverride: false,
+    price: price || {
+      paidCurrency: paidCurrency,
+      paidAmount: 0,
+      timeStamp,
+    },
   };
 }
 
@@ -337,43 +337,27 @@ async function generatePackageRoute(
   shippedOn: Date | undefined = undefined,
   deliveredOn: Date | undefined = undefined
 ): Promise<{ status: string; route: PackageRoute }> {
+  const conversionRate = (
+    await getConversionRate(route.feeSplit.paidCurrency, convertedCurrency)
+  ).conversion_rate;
+
   const packageRoute: PackageRoute = {
     ...route,
     feeSplit: {
-      firstWeightKg: route.feeSplit.firstWeightKg,
-      firstWeightCost: (
-        await refreshPrice({
-          ...route.feeSplit.firstWeightCost,
-          convertedCurrency,
-        } as Price)
-      ).price!,
-      continuedWeightCost: (
-        await refreshPrice({
-          ...route.feeSplit.continuedWeightCost,
-          convertedCurrency,
-        } as Price)
-      ).price!,
-      miscFee: (
-        await refreshPrice({
-          ...route.feeSplit.miscFee,
-          convertedCurrency,
-        } as Price)
-      ).price!,
+      ...route.feeSplit,
+      convertedCurrency,
+      conversionRate,
     },
-    ...(route.price && {
-      price: (
-        await refreshPrice({ ...route.price, convertedCurrency } as Price)
-      ).price!,
-    }),
+    price: {
+      ...route.price,
+      convertedCurrency,
+      conversionRate,
+    },
     trackingNumber: "",
     status: PACKAGE_STATUS.PENDING,
     shippedOn,
     deliveredOn,
   } as PackageRoute;
-
-  // route.feeSplit = {
-  //   firstWeightKg: 0,
-  // };
 
   return {
     status: "Package route created successfully!",
@@ -442,11 +426,12 @@ async function generateItem(
  * Calculates the shipping price of a package for a particular route
  * @param {Package} pkg - The package
  * @param {number} routeIndex - The index of the route for which the shipping price needs to be computed
- * @returns {ItemRoute[]} - The function updates the price of the route in the route object itself and returns the same
+ * @returns {ItemRoute[]} - The function returns the price of the route
  */
 function calculatePackageRoutePrice(pkg: Package, routeIndex: number): Price {
   const route = pkg.routes[routeIndex];
-  if (route.price) return route.price;
+
+  if (route.feeOverride) return route.price;
 
   const excessKg =
     (route.evaluationType === EVALUATION_TYPE.ACTUAL
@@ -458,35 +443,32 @@ function calculatePackageRoutePrice(pkg: Package, routeIndex: number): Price {
 
   const feeSplit = route.feeSplit;
 
-  route.price = {
-    ...feeSplit.firstWeightCost,
-    timeStamp: new Date().toISOString(),
+  return {
+    paidCurrency: feeSplit.paidCurrency,
     paidAmount:
-      feeSplit.firstWeightCost.paidAmount +
-      excessKg * feeSplit.continuedWeightCost.paidAmount +
-      feeSplit.miscFee.paidAmount,
-    convertedAmount:
-      feeSplit.firstWeightCost.convertedAmount +
-      excessKg * feeSplit.continuedWeightCost.convertedAmount +
-      feeSplit.miscFee.convertedAmount,
+      feeSplit.firstWeightAmount +
+      excessKg * feeSplit.continuedWeightAmount +
+      feeSplit.miscAmount,
+    timeStamp: feeSplit.timeStamp,
+    convertedCurrency: feeSplit.convertedCurrency,
+    conversionRate: feeSplit.conversionRate,
   };
-
-  return route.price;
 }
 
 function calculatePackageShippingPrice(pkg: Package): LocalPrice {
   // Since each route can have their own paid currency,
   // the total shipping price of the package is calculated only using convertedCurrency
-  calculatePackageRoutePrice(pkg, 0);
   return pkg.routes.reduce(
-    (total: LocalPrice, _, routeIndex: number) => ({
-      ...total,
-      paidAmount:
-        total.paidAmount +
-        calculatePackageRoutePrice(pkg, routeIndex).convertedAmount,
-    }),
+    (total: LocalPrice, _, routeIndex: number) => {
+      const routePrice = calculatePackageRoutePrice(pkg, routeIndex);
+      return {
+        ...total,
+        paidAmount:
+          total.paidAmount + routePrice.paidAmount * routePrice.conversionRate,
+      };
+    },
     {
-      paidCurrency: pkg.routes[0].price!.convertedCurrency,
+      paidCurrency: pkg.routes[0].price.convertedCurrency,
       paidAmount: 0,
       timeStamp: new Date().toISOString(),
     } as LocalPrice
@@ -513,7 +495,7 @@ function calculateItemRoutePrice(
     pkg.items.reduce((tw, i) => tw + getVolume(i.dimensions), 0);
 
   return pkg.routes.map((route, routeIndex) => {
-    calculatePackageRoutePrice(pkg, routeIndex);
+    const routePrice = calculatePackageRoutePrice(pkg, routeIndex);
     const ratio =
       route.evaluationType === EVALUATION_TYPE.ACTUAL
         ? weightRatio
@@ -521,9 +503,8 @@ function calculateItemRoutePrice(
     return {
       routeId: route.id,
       price: {
-        ...route.price,
-        paidAmount: ratio * route.price!.paidAmount,
-        convertedAmount: ratio * route.price!.convertedAmount,
+        ...routePrice,
+        paidAmount: ratio * routePrice.paidAmount,
       } as Price,
     };
   });
@@ -540,7 +521,8 @@ function calculateItemShippingPrice(routes: ItemRoute[]): LocalPrice {
   return routes.reduce(
     (total: LocalPrice, route: ItemRoute) => ({
       ...total,
-      paidAmount: total.paidAmount + route.price.convertedAmount,
+      paidAmount:
+        total.paidAmount + route.price.paidAmount * route.price.conversionRate,
     }),
     {
       paidCurrency: routes[0].price.convertedCurrency,
@@ -564,7 +546,9 @@ function calculateItemTotalPrice(
   // to calculate total item price with shipping
   return {
     paidCurrency: item.cost.convertedCurrency,
-    paidAmount: item.cost.convertedAmount + shippingPrice.paidAmount,
+    paidAmount:
+      item.cost.paidAmount * item.cost.conversionRate +
+      shippingPrice.paidAmount,
     timeStamp: new Date().toISOString(),
   };
 }

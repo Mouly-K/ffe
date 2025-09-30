@@ -21,16 +21,16 @@ function getRateObject(
   rate?: number
 ) {
   return {
-    currency: !rate ? feeSplit.firstWeightCost.paidCurrency : userCurrency,
-    symbol: !rate
-      ? CURRENCIES[feeSplit.firstWeightCost.paidCurrency].currencySymbol
+    currency: rate ? feeSplit.paidCurrency : userCurrency,
+    symbol: rate
+      ? CURRENCIES[feeSplit.paidCurrency].currencySymbol
       : CURRENCIES[userCurrency].currencySymbol,
     items: [
       {
         icon: Box,
         label: `First ${feeSplit.firstWeightKg}kg`,
         amount: toFixedWithoutTrailingZeros(
-          feeSplit.firstWeightCost.paidAmount * (rate || 1),
+          feeSplit.firstWeightAmount * (rate || 1),
           2
         ),
       },
@@ -38,7 +38,7 @@ function getRateObject(
         icon: PackagePlus,
         label: `Per Add'l kg`,
         amount: toFixedWithoutTrailingZeros(
-          feeSplit.continuedWeightCost.paidAmount * (rate || 1),
+          feeSplit.continuedWeightAmount * (rate || 1),
           2
         ),
       },
@@ -46,7 +46,7 @@ function getRateObject(
         icon: BadgePercent,
         label: `Misc Fee`,
         amount: toFixedWithoutTrailingZeros(
-          feeSplit.miscFee.paidAmount * (rate || 1),
+          feeSplit.miscAmount * (rate || 1),
           2
         ),
       },
@@ -136,7 +136,7 @@ function FeeSplitBadge({
   return (
     <BadgeWrapper
       className={className}
-      flag={CURRENCIES[feeSplit.firstWeightCost.paidCurrency].flag}
+      flag={CURRENCIES[feeSplit.paidCurrency].flag}
       fallback={
         <>
           <Skeleton className="h-4 w-[5.4rem]" /> {/* First weight cost */}
@@ -151,7 +151,7 @@ function FeeSplitBadge({
         feeSplit={feeSplit}
         userCurrency={settings.currency}
         getRate={getConversionRate(
-          feeSplit.firstWeightCost.paidCurrency,
+          feeSplit.paidCurrency,
           settings.currency,
           timeStamp
         )}

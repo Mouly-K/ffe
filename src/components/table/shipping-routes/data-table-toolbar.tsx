@@ -209,15 +209,17 @@ export function DataTableToolbar<TData>({
 
   function AmountInput({
     field,
+    currency,
     tooltip,
     renderIcon,
   }: {
     field: ControllerRenderProps<
       ShippingRoute,
-      | "feeSplit.firstWeightCost"
-      | "feeSplit.continuedWeightCost"
-      | "feeSplit.miscFee"
+      | "feeSplit.firstWeightAmount"
+      | "feeSplit.continuedWeightAmount"
+      | "feeSplit.miscAmount"
     >;
+    currency: Currency;
     tooltip: string;
     renderIcon?: () => ReactNode;
   }) {
@@ -226,19 +228,16 @@ export function DataTableToolbar<TData>({
         <TooltipTrigger asChild>
           <FormItem className="flex items-center">
             {renderIcon && renderIcon()}
-            <p>{CURRENCIES[field.value.paidCurrency].currencySymbol}</p>
+            <p>{CURRENCIES[currency].currencySymbol}</p>
             <FormControl>
               <Input
                 type="number"
                 placeholder="Amount..."
                 className="font-mono tabular-nums w-21 min-w-21 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
-                value={field.value.paidAmount || ""}
+                value={field.value || ""}
                 onChange={(e) => {
                   e.target.style.width = e.target.value.length + 3 + "ch";
-                  field.onChange({
-                    ...field.value,
-                    paidAmount: +e.target.value,
-                  });
+                  field.onChange(field.value);
                 }}
               />
             </FormControl>
@@ -491,7 +490,7 @@ export function DataTableToolbar<TData>({
                   >
                     <FormField
                       control={form.control}
-                      name="feeSplit.firstWeightCost.paidCurrency"
+                      name="feeSplit.paidCurrency"
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
@@ -500,34 +499,10 @@ export function DataTableToolbar<TData>({
                               currency={field.value}
                               onSelect={(currency) => {
                                 field.onChange(currency);
-
-                                // update all three LocalPrice objects with the same currency
-                                const feeSplit = form.getValues("feeSplit");
-                                form.setValue(
-                                  "feeSplit",
-                                  {
-                                    ...feeSplit,
-                                    firstWeightCost: {
-                                      ...feeSplit.firstWeightCost,
-                                      paidCurrency: currency,
-                                    },
-                                    continuedWeightCost: {
-                                      ...feeSplit.continuedWeightCost,
-                                      paidCurrency: currency,
-                                    },
-                                    miscFee: {
-                                      ...feeSplit.miscFee,
-                                      paidCurrency: currency,
-                                    },
-                                  },
-                                  { shouldValidate: true, shouldDirty: true }
-                                );
                                 // Some weird issue where the form state doesn't update
                                 form.trigger([
                                   // Also, passing in a single stirng, but having it in an array works somehow
-                                  "feeSplit.firstWeightCost.paidCurrency",
-                                  // "feeSplit.continuedWeightCost.paidCurrency",
-                                  // "feeSplit.miscFee.paidCurrency",
+                                  "feeSplit.paidCurrency",
                                 ]);
                               }}
                             />
@@ -569,10 +544,11 @@ export function DataTableToolbar<TData>({
                     />
                     <FormField
                       control={form.control}
-                      name="feeSplit.firstWeightCost"
+                      name="feeSplit.firstWeightAmount"
                       render={({ field }) => (
                         <AmountInput
                           field={field}
+                          currency={form.getValues("feeSplit.paidCurrency")}
                           tooltip="Amount to be paid for the first chargeable weight"
                         />
                       )}
@@ -580,10 +556,11 @@ export function DataTableToolbar<TData>({
                     <Separator orientation="vertical" />
                     <FormField
                       control={form.control}
-                      name="feeSplit.continuedWeightCost"
+                      name="feeSplit.continuedWeightAmount"
                       render={({ field }) => (
                         <AmountInput
                           field={field}
+                          currency={form.getValues("feeSplit.paidCurrency")}
                           tooltip="Amount to be paid for each additional kg"
                           renderIcon={() => (
                             <>
@@ -600,10 +577,11 @@ export function DataTableToolbar<TData>({
                     <Separator orientation="vertical" />
                     <FormField
                       control={form.control}
-                      name="feeSplit.miscFee"
+                      name="feeSplit.miscAmount"
                       render={({ field }) => (
                         <AmountInput
                           field={field}
+                          currency={form.getValues("feeSplit.paidCurrency")}
                           tooltip="Any miscellaneous fees"
                           renderIcon={() => (
                             <CircleDollarSign

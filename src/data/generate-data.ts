@@ -10,7 +10,7 @@ import {
   type Warehouse,
   type Shipper,
 } from "@/types/shipping";
-import type { LocalPrice, Currency } from "@/types/currency";
+import type { Currency } from "@/types/currency";
 import { CURRENCIES } from "@/types/currency";
 
 export function generateWarehouses() {
@@ -51,18 +51,6 @@ export function generateWarehouses() {
   console.log("✅ Generated warehouses", warehouses);
 }
 
-function generateLocalPrice(
-  paidCurrency: Currency,
-  timeStamp: Date,
-  amount: number
-): LocalPrice {
-  return {
-    paidCurrency,
-    paidAmount: amount,
-    timeStamp,
-  };
-}
-
 export function generateShippers() {
   let shippers = [];
   for (let i = 0; i < 5; i++) {
@@ -72,7 +60,7 @@ export function generateShippers() {
     ) as Currency;
     const basedIn = faker.helpers.arrayElement(existingWarehouses) as Warehouse;
     const numRoutes = faker.number.int({ min: 1, max: 5 });
-    
+
     const shipper: Shipper = {
       id,
       name: faker.company.name(),
@@ -104,8 +92,8 @@ export function generateShippingRoute(
   shipperId: string,
   paidCurrency: Currency,
   basedIn: Warehouse
-): ShippingRoute {
-  const timeStamp = new Date();
+) {
+  const timeStamp = new Date().toISOString();
   const evaluationType = faker.helpers.arrayElement([
     EVALUATION_TYPE.VOLUMETRIC,
     EVALUATION_TYPE.ACTUAL,
@@ -122,19 +110,19 @@ export function generateShippingRoute(
       : (faker.helpers.arrayElement(existingWarehouses) as Warehouse);
 
   // Generate firstWeightCost (max 10) and calculate continuedWeightCost as 1/4 of it
-  const firstWeightCost = faker.number.float({
+  const firstWeightAmount = faker.number.float({
     min: 1,
     max: 10,
     fractionDigits: 2,
   });
-  const continuedWeightCost = firstWeightCost / 4;
-  const miscFee = faker.number.float({
+  const continuedWeightAmount = firstWeightAmount / 4;
+  const miscAmount = faker.number.float({
     min: 0,
     max: 5,
     fractionDigits: 2,
   });
 
-  const route: ShippingRoute = {
+  return {
     id: `SRTE-${faker.string.alphanumeric(6).toUpperCase()}`,
     shipperId,
     name: `${originWarehouse.name} to ${destinationWarehouse.name}`,
@@ -145,27 +133,18 @@ export function generateShippingRoute(
       volumetricDivisor: faker.number.int({ min: 10, max: 16 }) * 500, // 5000 to 8000 in steps of 500
     }),
     feeSplit: {
+      paidCurrency,
+      timeStamp,
       firstWeightKg: faker.number.int({ min: 1, max: 20 }), // 1-20 in steps of 1
-      firstWeightCost: generateLocalPrice(
-        paidCurrency,
-        timeStamp,
-        firstWeightCost
-      ),
-      continuedWeightCost: generateLocalPrice(
-        paidCurrency,
-        timeStamp,
-        continuedWeightCost
-      ),
-      miscFee: generateLocalPrice(paidCurrency, timeStamp, miscFee),
+      firstWeightAmount,
+      continuedWeightAmount,
+      miscAmount,
     },
-    ...(Math.random() > 0.5 && {
-      price: generateLocalPrice(
-        paidCurrency,
-        timeStamp,
-        faker.number.int({ min: 15, max: 200 })
-      ),
-    }),
-  };
-
-  return route;
+    feeOverride: Math.random() > 0.5,
+    price: {
+      paidCurrency,
+      paidAmount: faker.number.int({ min: 15, max: 200 }),
+      timeStamp,
+    },
+  } as ShippingRoute;
 }
