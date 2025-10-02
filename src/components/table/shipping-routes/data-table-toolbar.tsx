@@ -11,15 +11,17 @@ import { DataTableFacetedFilter } from "@/components/table/data-table-faceted-fi
 import DataTableAddRoute from "@/components/table/shipping-routes/data-table-add-route";
 
 import { evaluationTypes, warehouses } from "@/components/table/data/data";
-import { type Shipper } from "@/types/shipping";
+import type { Shipper, ShippingRoute } from "@/types/shipping";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  metaData: Shipper;
+  onRowAdd: (row: ShippingRoute) => void;
+  metaData: Omit<Shipper, "shippingRoutes">;
 }
 
 export function DataTableToolbar<TData>({
   table,
+  onRowAdd,
   metaData,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -60,7 +62,7 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <DataTableViewOptions table={table} />
-      <DataTableAddRoute metaData={metaData} />
+      <DataTableAddRoute metaData={metaData} onAdd={onRowAdd} />
     </div>
   );
 }

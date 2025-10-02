@@ -98,52 +98,48 @@ function ShipperCard({
                   )}
                 </Button>
               </SearchSelector>
-              {shipper.basedIn && (
-                <SearchSelector
-                  items={WAREHOUSES}
-                  selectedKey={shipper.basedIn.id}
-                  renderItem={(_, item) => (
-                    <>
-                      <Flag flag={COUNTRIES[item.countryName].flag} />
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">
-                          {item.name}
-                        </span>
-                        <span className="text-muted-foreground truncate text-xs">
-                          {item.countryName}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                  onSelect={(warehouseId) =>
-                    startTransition(() =>
-                      setShipper({
-                        ...shipper,
-                        basedIn: {
-                          id: warehouseId,
-                          ...WAREHOUSES[warehouseId],
-                        },
-                      })
-                    )
-                  }
+              <SearchSelector
+                items={WAREHOUSES}
+                selectedKey={shipper.basedIn.id}
+                renderItem={(_, item) => (
+                  <>
+                    <Flag flag={COUNTRIES[item.countryName].flag} />
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">{item.name}</span>
+                      <span className="text-muted-foreground truncate text-xs">
+                        {item.countryName}
+                      </span>
+                    </div>
+                  </>
+                )}
+                onSelect={(warehouseId) =>
+                  startTransition(() =>
+                    setShipper({
+                      ...shipper,
+                      basedIn: {
+                        id: warehouseId,
+                        ...WAREHOUSES[warehouseId],
+                      },
+                    })
+                  )
+                }
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border text-muted-foreground"
                 >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 border text-muted-foreground"
-                  >
-                    Based In
-                    <Separator orientation="vertical" className="mx-2 h-8" />
-                    <Flag
-                      flag={COUNTRIES[shipper.basedIn?.countryName].flag}
-                      className="w-auto text-sm"
-                    />
-                    {shipper.basedIn.name === shipper.basedIn.countryName
-                      ? shipper.basedIn.name
-                      : `${shipper.basedIn.name}, ${shipper.basedIn.countryName}`}
-                  </Button>
-                </SearchSelector>
-              )}
+                  Based In
+                  <Separator orientation="vertical" className="mx-2 h-8" />
+                  <Flag
+                    flag={COUNTRIES[shipper.basedIn?.countryName].flag}
+                    className="w-auto text-sm"
+                  />
+                  {shipper.basedIn.name === shipper.basedIn.countryName
+                    ? shipper.basedIn.name
+                    : `${shipper.basedIn.name}, ${shipper.basedIn.countryName}`}
+                </Button>
+              </SearchSelector>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -154,7 +150,18 @@ function ShipperCard({
           columns={columns}
           data={shipper.shippingRoutes}
           renderToolbar={(table) => (
-            <DataTableToolbar table={table} metaData={shipper} />
+            <DataTableToolbar
+              table={table}
+              metaData={(({ shippingRoutes, ...rest }: Shipper) => rest)(
+                shipper
+              )}
+              onRowAdd={(route) =>
+                setShipper({
+                  ...shipper,
+                  shippingRoutes: [...shipper.shippingRoutes, route],
+                })
+              }
+            />
           )}
           // columnVisibility={{
           //   name: false,

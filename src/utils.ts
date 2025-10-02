@@ -306,7 +306,7 @@ function generateShippingRoute(
 function generateShipper(
   name: string = "",
   defaultCurrency: Currency = "CNY",
-  basedIn?: Warehouse
+  basedIn: Warehouse
 ): Shipper {
   return {
     id: uuidv4(),

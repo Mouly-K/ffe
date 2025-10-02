@@ -21,10 +21,10 @@ function getRateObject(
   rate?: number
 ) {
   return {
-    currency: rate ? feeSplit.paidCurrency : userCurrency,
+    currency: rate ? userCurrency : feeSplit.paidCurrency,
     symbol: rate
-      ? CURRENCIES[feeSplit.paidCurrency].currencySymbol
-      : CURRENCIES[userCurrency].currencySymbol,
+      ? CURRENCIES[userCurrency].currencySymbol
+      : CURRENCIES[feeSplit.paidCurrency].currencySymbol,
     items: [
       {
         icon: Box,
@@ -73,21 +73,21 @@ function AwaitBadge({
         <p className="min-w-[5.4rem] text-center">
           {feeSplit.firstWeightKg +
             "kg " +
-            rates.symbol +
+            originalRates.symbol +
             " " +
-            rates.items[0].amount}
+            originalRates.items[0].amount}
         </p>
         <Separator />
         <span className="min-w-[5.8rem] flex gap-1">
           <PackagePlus size="14" className="h-3.5 w-3.5 ml-1" />
           <p>kg</p>
           <p className="flex flex-1 justify-center">
-            {rates.symbol + " " + rates.items[1].amount}
+            {originalRates.symbol + " " + originalRates.items[1].amount}
           </p>
         </span>
         <Separator />
         <p className="min-w-15 text-center">
-          {rates.symbol + " " + rates.items[2].amount}
+          {originalRates.symbol + " " + originalRates.items[2].amount}
         </p>
       </TooltipTrigger>
       <TooltipContent className="flex flex-col gap-3 w-80 px-0 py-3">

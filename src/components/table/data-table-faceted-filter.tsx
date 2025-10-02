@@ -67,6 +67,18 @@ const renderCount = (count: number | undefined): React.ReactNode => {
   );
 };
 
+const getCount = (
+  facets: Map<any, number> | undefined,
+  option: FilterOption
+): number | undefined => {
+  if (!facets) return;
+  if (typeof option.value === "string") return facets.get(option.value);
+
+  for (let facet of Array.from(facets)) {
+    if (isEqualSansId(facet[0], option.value)) return facet[1];
+  }
+};
+
 export function DataTableFacetedFilter<TData, TValue>({
   column,
   title,
@@ -88,15 +100,6 @@ export function DataTableFacetedFilter<TData, TValue>({
       return selectedValues.some((sv) => isEqualSansId(sv, optionValue));
     }
     return selectedValues.includes(optionValue);
-  };
-
-  const getCount = (option: FilterOption): number | undefined => {
-    if (!facets) return;
-    if (typeof option.value === "string") return facets.get(option.value);
-
-    for (let facet of Array.from(facets)) {
-      if (isEqualSansId(facet[0], option.value)) return facet[1];
-    }
   };
 
   return (
@@ -147,7 +150,7 @@ export function DataTableFacetedFilter<TData, TValue>({
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup>
               {options
-                .filter((o) => getCount(o))
+                .filter((o) => getCount(facets, o))
                 .map((option) => {
                   const selected = isValueSelected(option.value);
                   return (
@@ -183,7 +186,7 @@ export function DataTableFacetedFilter<TData, TValue>({
                       )}
                       {option.flag && <Flag flag={option.flag} />}
                       {renderItem(option)}
-                      {renderCount(getCount(option))}
+                      {renderCount(getCount(facets, option))}
                     </CommandItem>
                   );
                 })}

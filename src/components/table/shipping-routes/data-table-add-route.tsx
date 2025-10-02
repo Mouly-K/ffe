@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useForm, type FieldError, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -220,9 +220,12 @@ function getError(errors: any) {
 
 function DataTableAddRoute({
   metaData,
+  onAdd,
 }: {
   metaData: Omit<Shipper, "shippingRoutes">;
+  onAdd: (route: ShippingRoute) => void;
 }) {
+  const [open, setOpen] = useState(false);
   const form = useForm<ShippingRoute>({
     resolver: zodResolver(ShippingRouteSchema),
     defaultValues: generateShippingRoute(
@@ -233,11 +236,13 @@ function DataTableAddRoute({
   });
 
   const onSubmit: SubmitHandler<ShippingRoute> = (value) => {
-    console.log(value);
+    form.reset();
+    setOpen(false);
+    onAdd(value);
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" size="sm" className="h-8 lg:flex ml-2">
           <Plus />
@@ -411,17 +416,22 @@ function DataTableAddRoute({
               <FormField
                 control={form.control}
                 name="feeOverride"
-                render={({ field: bfield }) => (
+                render={({ field }) => (
                   <FormItem className="flex gap-4">
-                    <FormLabel data-error={!!form.formState.errors.feeSplit}>
-                      Fee Split
+                    <FormLabel
+                      data-error={
+                        (!field.value && !!form.formState.errors.feeSplit) ||
+                        (field.value && !!form.formState.errors.price)
+                      }
+                    >
+                      {field.value ? "Fee Override" : "Fee Split"}
                     </FormLabel>
                     <FormControl>
                       <ToggleGroup
                         type="single"
-                        value={bfield.value ? "override" : "split"}
+                        value={field.value ? "override" : "split"}
                         onValueChange={(value) =>
-                          bfield.onChange(value === "override")
+                          field.onChange(value === "override")
                         }
                       >
                         <ToggleGroupItem
@@ -443,148 +453,151 @@ function DataTableAddRoute({
                   </FormItem>
                 )}
               />
-              {form.watch("feeOverride") ? (
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field, fieldState }) => (
-                    <div className="grid gap-3">
-                      <FormItem
-                        className="dark:bg-input/30 border-input h-9 rounded-md border bg-transparent px-0 py-0 text-base shadow-xs md:text-sm flex w-fit justify-between items-center font-mono tabular-nums text-muted-foreground aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow]"
-                        aria-invalid={!!fieldState.error}
-                      >
-                        <CurrencySelector
-                          name="price.paidCurrency"
-                          currency={field.value.paidCurrency}
-                          onSelect={(paidCurrency) =>
-                            field.onChange({ ...field.value, paidCurrency })
-                          }
-                        />
-                        <Separator orientation="vertical" />
-                        <AmountInput
-                          name="price.paidAmount"
-                          value={field.value.paidAmount}
-                          onChange={(paidAmount) =>
-                            field.onChange({
-                              ...field.value,
-                              paidAmount,
-                            })
-                          }
-                          currency={field.value.paidCurrency}
-                          tooltip="Flat amount to be paid for the route"
-                        />
-                      </FormItem>
-                      {fieldState.error && (
-                        <p className="text-destructive text-sm">
-                          {getError(fieldState.error)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
-              ) : (
-                <FormField
-                  control={form.control}
-                  name="feeSplit"
-                  render={({ field, fieldState }) => (
-                    <div className="grid gap-3">
-                      <FormItem
-                        className="dark:bg-input/30 border-input h-9 rounded-md border bg-transparent px-0 py-0 text-base shadow-xs md:text-sm flex w-full justify-between items-center font-mono tabular-nums text-muted-foreground aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow]"
-                        aria-invalid={!!fieldState.error}
-                      >
-                        <CurrencySelector
-                          name="feeSplit.paidCurrency"
-                          currency={field.value.paidCurrency}
-                          onSelect={(paidCurrency) =>
-                            field.onChange({ ...field.value, paidCurrency })
-                          }
-                        />
-                        <Separator orientation="vertical" />
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center">
-                              <Input
-                                type="number"
-                                name="feeSplit.firstWeightKg"
-                                placeholder="1st..."
-                                className="font-mono tabular-nums w-16 min-w-16 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
-                                value={field.value.firstWeightKg || ""}
-                                onChange={(e) => {
-                                  e.target.style.width =
-                                    e.target.value.length + 3 + "ch";
-                                  field.onChange({
-                                    ...field.value,
-                                    firstWeightKg: +e.target.value,
-                                  });
-                                }}
-                              />
-                              <p className="text-xs mr-3">kg</p>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="flex flex-col items-center gap-1">
-                            The first chargeable weight of the route in kgs
-                          </TooltipContent>
-                        </Tooltip>
-                        <AmountInput
-                          name="feeSplit.firstWeightAmount"
-                          value={field.value.firstWeightAmount}
-                          onChange={(firstWeightAmount) =>
-                            field.onChange({
-                              ...field.value,
-                              firstWeightAmount,
-                            })
-                          }
-                          currency={field.value.paidCurrency}
-                          tooltip="Amount to be paid for the first chargeable weight"
-                        />
-                        <Separator orientation="vertical" />
-                        <AmountInput
-                          name="feeSplit.continuedWeightAmount"
-                          value={field.value.continuedWeightAmount}
-                          onChange={(continuedWeightAmount) =>
-                            field.onChange({
-                              ...field.value,
-                              continuedWeightAmount,
-                            })
-                          }
-                          currency={field.value.paidCurrency}
-                          tooltip="Amount to be paid for each additional kg"
-                          renderIcon={() => (
-                            <>
-                              <PackagePlus
-                                size="14"
-                                className="h-3.5 w-3.5 m-1"
-                              />
-                              <p className="text-xs mr-3">kg</p>
-                            </>
-                          )}
-                        />
-                        <Separator orientation="vertical" />
-                        <AmountInput
-                          name="feeSplit.miscAmount"
-                          value={field.value.miscAmount}
-                          onChange={(miscAmount) =>
-                            field.onChange({ ...field.value, miscAmount })
-                          }
-                          currency={field.value.paidCurrency}
-                          tooltip="Any miscellaneous fees"
-                          renderIcon={() => (
-                            <CircleDollarSign
+              <FormField
+                control={form.control}
+                name="feeSplit"
+                render={({ field, fieldState }) => (
+                  <div
+                    className="hidden gap-3 aria-expanded:grid"
+                    aria-expanded={!form.watch("feeOverride")}
+                  >
+                    <FormItem
+                      className="dark:bg-input/30 border-input h-9 rounded-md border bg-transparent px-0 py-0 text-base shadow-xs md:text-sm flex w-full justify-between items-center font-mono tabular-nums text-muted-foreground aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow]"
+                      aria-invalid={!!fieldState.error}
+                    >
+                      <CurrencySelector
+                        name="feeSplit.paidCurrency"
+                        currency={field.value.paidCurrency}
+                        onSelect={(paidCurrency) =>
+                          field.onChange({ ...field.value, paidCurrency })
+                        }
+                      />
+                      <Separator orientation="vertical" />
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center">
+                            <Input
+                              type="number"
+                              name="feeSplit.firstWeightKg"
+                              placeholder="1st..."
+                              className="font-mono tabular-nums w-16 min-w-16 dark:bg-transparent border-none focus-visible:border-none focus-visible:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none placeholder:text-xs"
+                              value={field.value.firstWeightKg || ""}
+                              onChange={(e) => {
+                                e.target.style.width =
+                                  e.target.value.length + 3 + "ch";
+                                field.onChange({
+                                  ...field.value,
+                                  firstWeightKg: +e.target.value,
+                                });
+                              }}
+                            />
+                            <p className="text-xs mr-3">kg</p>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="flex flex-col items-center gap-1">
+                          The first chargeable weight of the route in kgs
+                        </TooltipContent>
+                      </Tooltip>
+                      <AmountInput
+                        name="feeSplit.firstWeightAmount"
+                        value={field.value.firstWeightAmount}
+                        onChange={(firstWeightAmount) =>
+                          field.onChange({
+                            ...field.value,
+                            firstWeightAmount,
+                          })
+                        }
+                        currency={field.value.paidCurrency}
+                        tooltip="Amount to be paid for the first chargeable weight"
+                      />
+                      <Separator orientation="vertical" />
+                      <AmountInput
+                        name="feeSplit.continuedWeightAmount"
+                        value={field.value.continuedWeightAmount}
+                        onChange={(continuedWeightAmount) =>
+                          field.onChange({
+                            ...field.value,
+                            continuedWeightAmount,
+                          })
+                        }
+                        currency={field.value.paidCurrency}
+                        tooltip="Amount to be paid for each additional kg"
+                        renderIcon={() => (
+                          <>
+                            <PackagePlus
                               size="14"
                               className="h-3.5 w-3.5 m-1"
                             />
-                          )}
-                        />
-                      </FormItem>
-                      {fieldState.error && (
-                        <p className="text-destructive text-sm">
-                          {getError(fieldState.error)}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                />
-              )}
+                            <p className="text-xs mr-3">kg</p>
+                          </>
+                        )}
+                      />
+                      <Separator orientation="vertical" />
+                      <AmountInput
+                        name="feeSplit.miscAmount"
+                        value={field.value.miscAmount}
+                        onChange={(miscAmount) =>
+                          field.onChange({ ...field.value, miscAmount })
+                        }
+                        currency={field.value.paidCurrency}
+                        tooltip="Any miscellaneous fees"
+                        renderIcon={() => (
+                          <CircleDollarSign
+                            size="14"
+                            className="h-3.5 w-3.5 m-1"
+                          />
+                        )}
+                      />
+                    </FormItem>
+                    {fieldState.error && (
+                      <p className="text-destructive text-sm">
+                        {getError(fieldState.error)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field, fieldState }) => (
+                  <div
+                    className="hidden gap-3 aria-expanded:grid"
+                    aria-expanded={form.watch("feeOverride")}
+                  >
+                    <FormItem
+                      className="dark:bg-input/30 border-input h-9 rounded-md border bg-transparent px-0 py-0 text-base shadow-xs md:text-sm flex w-fit justify-between items-center font-mono tabular-nums text-muted-foreground aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow]"
+                      aria-invalid={!!fieldState.error}
+                    >
+                      <CurrencySelector
+                        name="price.paidCurrency"
+                        currency={field.value.paidCurrency}
+                        onSelect={(paidCurrency) =>
+                          field.onChange({ ...field.value, paidCurrency })
+                        }
+                      />
+                      <Separator orientation="vertical" />
+                      <AmountInput
+                        name="price.paidAmount"
+                        value={field.value.paidAmount}
+                        onChange={(paidAmount) =>
+                          field.onChange({
+                            ...field.value,
+                            paidAmount,
+                          })
+                        }
+                        currency={field.value.paidCurrency}
+                        tooltip="Flat amount to be paid for the route"
+                      />
+                    </FormItem>
+                    {fieldState.error && (
+                      <p className="text-destructive text-sm">
+                        {getError(fieldState.error)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              />
             </div>
             <DialogFooter>
               <DialogClose asChild>

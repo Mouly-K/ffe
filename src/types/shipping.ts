@@ -27,7 +27,21 @@ const WarehouseSchema = z.object({
   countryName: CountrySchema.shape.name,
 });
 
-// Base schema with all shared fields
+const FeeSplitSchema = z.object({
+  paidCurrency: CountrySchema.shape.currencyTag,
+  firstWeightKg: z.number().positive("First weight must be greater than 0"),
+  firstWeightAmount: z
+    .number()
+    .positive("First weight amount must be greater than 0"),
+  continuedWeightAmount: z
+    .number()
+    .positive("Continued weight amount must be greater than 0"),
+  miscAmount: z
+    .number()
+    .nonnegative("Miscellaneous amount must be 0 or greater"),
+  timeStamp: z.iso.datetime(),
+});
+
 const ShippingRouteBaseSchema = z.object({
   id: z.string(),
   shipperId: z.string(),
@@ -37,51 +51,60 @@ const ShippingRouteBaseSchema = z.object({
     .max(50, { message: "Name must be less than 50 characters." }),
   originWarehouse: WarehouseSchema,
   destinationWarehouse: WarehouseSchema,
-  feeSplit: z.object({
-    paidCurrency: CountrySchema.shape.currencyTag,
-    firstWeightKg: z.number().positive("First weight must be greater than 0"),
-    firstWeightAmount: z
-      .number()
-      .positive("First weight amount must be greater than 0"),
-    continuedWeightAmount: z
-      .number()
-      .positive("Continued weight amount must be greater than 0"),
-    miscAmount: z
-      .number()
-      .positive("Miscellaneous amount must be greater than 0"),
-    timeStamp: z.iso.datetime(),
+});
+
+const SplitSchema = z.object({
+  feeOverride: z.literal(false),
+  feeSplit: FeeSplitSchema,
+  price: z.object({
+    ...LocalPriceSchema.shape,
+    paidAmount: z.number(),
   }),
-  feeOverride: z.boolean(),
+});
+
+const OverrideSchema = z.object({
+  feeOverride: z.literal(true),
+  feeSplit: z.object({
+    ...FeeSplitSchema.shape,
+    firstWeightKg: z.number(),
+    firstWeightAmount: z.number(),
+    continuedWeightAmount: z.number(),
+    miscAmount: z.number(),
+  }),
   price: LocalPriceSchema,
 });
 
-const ActualRouteBaseSchema = z.object({
-  ...ShippingRouteBaseSchema.shape,
-  evaluationType: z.literal(EVALUATION_TYPE.ACTUAL),
-  volumetricDivisor: z.number().optional().nullable(),
-});
-
-const VolumetricRouteBaseSchema = z.object({
-  ...ShippingRouteBaseSchema.shape,
-  evaluationType: z.literal(EVALUATION_TYPE.VOLUMETRIC),
-  volumetricDivisor: z
-    .number()
-    .positive("Must be > 0")
-    .multipleOf(100, "Must be a multiple of 100"),
-});
+const FeeUnionSchema = z.discriminatedUnion("feeOverride", [
+  SplitSchema,
+  OverrideSchema,
+]);
 
 // Discriminated union for evaluation type
-const ShippingRouteSchema = z.discriminatedUnion("evaluationType", [
-  ActualRouteBaseSchema,
-  VolumetricRouteBaseSchema,
+const EvaluationUnionSchema = z.discriminatedUnion("evaluationType", [
+  z.object({
+    evaluationType: z.literal(EVALUATION_TYPE.ACTUAL),
+    volumetricDivisor: z.number().optional().nullable(),
+  }),
+  z.object({
+    evaluationType: z.literal(EVALUATION_TYPE.VOLUMETRIC),
+    volumetricDivisor: z
+      .number()
+      .positive("Must be greater than 0")
+      .multipleOf(100, "Must be a multiple of 100"),
+  }),
 ]);
+
+const ShippingRouteSchema = z.intersection(
+  ShippingRouteBaseSchema,
+  z.intersection(FeeUnionSchema, EvaluationUnionSchema)
+);
 
 const ShipperSchema = z.object({
   id: z.string(),
   name: z.string(),
   defaultCurrency: CountrySchema.shape.currencyTag,
   image: z.string().optional(),
-  basedIn: WarehouseSchema.optional(),
+  basedIn: WarehouseSchema,
   shippingRoutes: z.array(ShippingRouteSchema),
 });
 
@@ -95,9 +118,9 @@ export {
   EVALUATION_TYPE,
   EvaluationTypeSchema,
   WarehouseSchema,
+  FeeSplitSchema,
   ShippingRouteBaseSchema,
-  VolumetricRouteBaseSchema,
-  ActualRouteBaseSchema,
+  EvaluationUnionSchema,
   ShippingRouteSchema,
   ShipperSchema,
 };

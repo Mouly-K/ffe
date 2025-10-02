@@ -1,11 +1,12 @@
 import z from "zod";
 import { PriceSchema } from "./currency";
-import {
-  ActualRouteBaseSchema,
-  ShippingRouteBaseSchema,
-  VolumetricRouteBaseSchema,
-} from "./shipping";
+
 import { CountrySchema } from "./country";
+import {
+  EvaluationUnionSchema,
+  FeeSplitSchema,
+  ShippingRouteBaseSchema,
+} from "./shipping";
 
 const PACKAGE_STATUS = {
   PENDING: "Pending",
@@ -52,28 +53,51 @@ const ItemSchema = z.object({
 });
 
 const PackageRouteBaseSchema = z.object({
-  feeSplit: z.object({
-    ...ShippingRouteBaseSchema.shape.feeSplit.shape,
-    convertedCurrency: CountrySchema.shape.currencyTag,
-    conversionRate: z.number(),
-  }),
-  price: PriceSchema,
+  ...ShippingRouteBaseSchema.shape,
   trackingNumber: z.string(),
   status: PackageStatusSchema,
   shippedOn: z.iso.datetime().optional(),
   deliveredOn: z.iso.datetime().optional(),
 });
 
-const PackageRouteSchema = z.discriminatedUnion("evaluationType", [
-  z.object({
-    ...ActualRouteBaseSchema.shape,
-    ...PackageRouteBaseSchema.shape,
+const SplitSchema = z.object({
+  feeOverride: z.literal(false),
+  feeSplit: z.object({
+    ...FeeSplitSchema.shape,
+    convertedCurrency: CountrySchema.shape.currencyTag,
+    conversionRate: z
+      .number()
+      .positive("Conversion Rate must be greater than 0"),
   }),
-  z.object({
-    ...VolumetricRouteBaseSchema.shape,
-    ...PackageRouteBaseSchema.shape,
+  price: z.object({
+    ...PriceSchema.shape,
+    paidAmount: z.number(),
   }),
+});
+
+const OverrideSchema = z.object({
+  feeOverride: z.literal(true),
+  feeSplit: z.object({
+    ...FeeSplitSchema.shape,
+    firstWeightKg: z.number(),
+    firstWeightAmount: z.number(),
+    continuedWeightAmount: z.number(),
+    miscAmount: z.number(),
+    convertedCurrency: CountrySchema.shape.currencyTag,
+    conversionRate: z.number(),
+  }),
+  price: PriceSchema,
+});
+
+const FeeUnionSchema = z.discriminatedUnion("feeOverride", [
+  SplitSchema,
+  OverrideSchema,
 ]);
+
+const PackageRouteSchema = z.intersection(
+  PackageRouteBaseSchema,
+  z.intersection(FeeUnionSchema, EvaluationUnionSchema)
+);
 
 const ItemRouteSchema = z.object({
   routeId: z.string(),
