@@ -14,9 +14,9 @@ import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
 import { SearchSelector } from "@/components/search-selector";
 
-import { DataTableToolbar } from "./table/shipping-routes/data-table-toolbar";
-import DataTableModal from "./table/shipping-routes/data-table-modal";
-import { DataTableRowActions } from "./table/data-table-row-actions";
+import { DataTableToolbar } from "@/components/table/shipping-routes/data-table-toolbar";
+import { DataTableRowActions } from "@/components/table/data-table-row-actions";
+import ShippingRouteModal from "@/components/modals/shipping-route-modal";
 
 import { WAREHOUSES, ShippingRouteSchema } from "@/types/shipping";
 import type { Shipper, Warehouse, ShippingRoute } from "@/types/shipping";
@@ -30,7 +30,7 @@ import {
 } from "@/utils";
 import warehousesData from "@/data/warehouses.json";
 
-import { ROW_ACTIONS, type RowAction } from "./table/data/data";
+import { ROW_ACTIONS, type RowAction } from "@/components/table/data/data";
 
 function ShipperCard({
   shipper,
@@ -213,7 +213,7 @@ function ShipperCard({
             <EditImage image={shipper?.image || ""} />
           </div>
         </div>
-        <DataTableModal
+        <ShippingRouteModal
           form={form}
           open={modalOpen}
           editMode={editMode}

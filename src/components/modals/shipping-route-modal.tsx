@@ -210,7 +210,7 @@ function getError(errors: any) {
   }
 }
 
-function DataTableModal({
+function ShippingRouteModal({
   form,
   open,
   editMode,
@@ -591,4 +591,4 @@ function DataTableModal({
   );
 }
 
-export default DataTableModal;
+export default ShippingRouteModal;
