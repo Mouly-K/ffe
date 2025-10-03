@@ -15,7 +15,6 @@ import {
 } from "@/types/shipping";
 
 import { DataTableColumnHeader } from "../data-table-column-header";
-import { DataTableRowActions } from "../data-table-row-actions";
 
 import { evaluationTypes } from "../data/data";
 
@@ -202,11 +201,5 @@ export const columns: ColumnDef<ShippingRoute>[] = [
       const B = rowB.getValue(id) as ShippingRoute["price"];
       return !(A && B) ? 0 : A?.paidAmount - B?.paidAmount;
     },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} />,
-    enableSorting: false,
-    enableHiding: false,
   },
 ];

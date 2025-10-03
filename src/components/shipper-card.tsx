@@ -1,4 +1,7 @@
 import { startTransition, useEffect, useState } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -11,12 +14,23 @@ import { columns } from "@/components/table/shipping-routes/columns";
 import { DataTable } from "@/components/table/data-table";
 import { SearchSelector } from "@/components/search-selector";
 
-import { WAREHOUSES, type Shipper } from "@/types/shipping";
+import { DataTableToolbar } from "./table/shipping-routes/data-table-toolbar";
+import DataTableModal from "./table/shipping-routes/data-table-modal";
+import { DataTableRowActions } from "./table/data-table-row-actions";
+
+import { WAREHOUSES, ShippingRouteSchema } from "@/types/shipping";
+import type { Shipper, Warehouse, ShippingRoute } from "@/types/shipping";
 import { CURRENCIES } from "@/types/currency";
 import { COUNTRIES } from "@/types/country";
 
-import { toFixedWithoutTrailingZeros, getConversionRate } from "@/utils";
-import { DataTableToolbar } from "./table/shipping-routes/data-table-toolbar";
+import {
+  toFixedWithoutTrailingZeros,
+  getConversionRate,
+  generateShippingRoute,
+} from "@/utils";
+import warehousesData from "@/data/warehouses.json";
+
+import { ROW_ACTIONS, type RowAction } from "./table/data/data";
 
 function ShipperCard({
   shipper,
@@ -28,6 +42,17 @@ function ShipperCard({
   const { settings } = useSettings();
   const [conversionRate, setConversionRate] = useState<number | undefined>();
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const form = useForm<ShippingRoute>({
+    resolver: zodResolver(ShippingRouteSchema),
+    defaultValues: generateShippingRoute(
+      shipper.id,
+      shipper.defaultCurrency,
+      shipper.basedIn || (warehousesData[0] as Warehouse)
+    ),
+  });
+
   useEffect(() => {
     const updateConversionRate = async () => {
       setConversionRate(
@@ -37,6 +62,48 @@ function ShipperCard({
     };
     updateConversionRate();
   }, [shipper.defaultCurrency, settings.currency]);
+
+  const onSubmit: SubmitHandler<ShippingRoute> = (value) => {
+    form.reset();
+    setModalOpen(false);
+    console.log("Successful submission: ", value);
+    if (editMode) {
+      setShipper({
+        ...shipper,
+        shippingRoutes: shipper.shippingRoutes.map((route) =>
+          route.id === value.id ? value : route
+        ),
+      });
+    } else {
+      setShipper({
+        ...shipper,
+        shippingRoutes: [...shipper.shippingRoutes, value],
+      });
+    }
+  };
+
+  const actionHandler = (action: RowAction, route: ShippingRoute) => {
+    if (action === ROW_ACTIONS.EDIT) {
+      form.reset(route);
+      setEditMode(true);
+      setModalOpen(true);
+    } else if (action === ROW_ACTIONS.DELETE) {
+      setShipper({
+        ...shipper,
+        shippingRoutes: shipper.shippingRoutes.filter((r) => r.id !== route.id),
+      });
+    } else if (action === ROW_ACTIONS.COPY) {
+      const newRoute = {
+        ...route,
+        id: crypto.randomUUID(),
+        name: route.name + " (Copy)",
+      };
+      setShipper({
+        ...shipper,
+        shippingRoutes: [...shipper.shippingRoutes, newRoute],
+      });
+    }
+  };
 
   return (
     <div className="flex-1 outline-none relative flex flex-col gap-4 px-4 lg:px-6">
@@ -146,21 +213,40 @@ function ShipperCard({
             <EditImage image={shipper?.image || ""} />
           </div>
         </div>
+        <DataTableModal
+          form={form}
+          open={modalOpen}
+          editMode={editMode}
+          setOpen={setModalOpen}
+          onSubmit={onSubmit}
+        />
         <DataTable
-          columns={columns}
+          columns={[
+            ...columns,
+            {
+              id: "actions",
+              cell: ({ row }) => (
+                <DataTableRowActions row={row} actionFn={actionHandler} />
+              ),
+              enableSorting: false,
+              enableHiding: false,
+            },
+          ]}
           data={shipper.shippingRoutes}
           renderToolbar={(table) => (
             <DataTableToolbar
               table={table}
-              metaData={(({ shippingRoutes, ...rest }: Shipper) => rest)(
-                shipper
-              )}
-              onRowAdd={(route) =>
-                setShipper({
-                  ...shipper,
-                  shippingRoutes: [...shipper.shippingRoutes, route],
-                })
-              }
+              onAddRoute={() => {
+                form.reset(
+                  generateShippingRoute(
+                    shipper.id,
+                    shipper.defaultCurrency,
+                    shipper.basedIn || (warehousesData[0] as Warehouse)
+                  )
+                );
+                setEditMode(false);
+                setModalOpen(true);
+              }}
             />
           )}
           // columnVisibility={{

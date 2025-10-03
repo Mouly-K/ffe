@@ -1,31 +1,27 @@
 "use client";
 
 import { type Row } from "@tanstack/react-table";
-import { MoreHorizontal } from "lucide-react";
+import { Copy, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { labels } from "./data/data";
+import { ROW_ACTIONS, type RowAction } from "./data/data";
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
+  actionFn: (action: RowAction, route: TData) => void;
 }
 
 export function DataTableRowActions<TData>({
   row,
+  actionFn,
 }: DataTableRowActionsProps<TData>) {
   return (
     <DropdownMenu>
@@ -39,26 +35,31 @@ export function DataTableRowActions<TData>({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>Edit</DropdownMenuItem>
-        <DropdownMenuItem>Make a copy</DropdownMenuItem>
-        {/* <DropdownMenuItem>Favorite</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => actionFn(ROW_ACTIONS.EDIT, row.original)}
+        >
+          Edit
+          <DropdownMenuShortcut>
+            <Pencil />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => actionFn(ROW_ACTIONS.COPY, row.original)}
+        >
+          Make a copy
+          <DropdownMenuShortcut>
+            <Copy />
+          </DropdownMenuShortcut>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={task.label}>
-              {labels.map((label) => (
-                <DropdownMenuRadioItem key={label.value} value={label.value}>
-                  {label.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub> */}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => actionFn(ROW_ACTIONS.DELETE, row.original)}
+          variant="destructive"
+        >
           Delete
-          <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+          <DropdownMenuShortcut>
+            <Trash2 className="text-destructive" />
+          </DropdownMenuShortcut>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -22,6 +22,14 @@ export type FilterOption = {
   flag?: CountryFlag;
 };
 
+export const ROW_ACTIONS = {
+  EDIT: "edit",
+  COPY: "copy",
+  DELETE: "delete",
+} as const;
+
+export type RowAction = (typeof ROW_ACTIONS)[keyof typeof ROW_ACTIONS];
+
 export const evaluationTypes: FilterOption[] = [
   {
     value: EVALUATION_TYPE.VOLUMETRIC,

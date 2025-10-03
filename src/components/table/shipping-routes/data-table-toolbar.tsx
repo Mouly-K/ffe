@@ -1,28 +1,24 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/ui/search-input";
 
 import { DataTableViewOptions } from "@/components/table/data-table-view-options";
 import { DataTableFacetedFilter } from "@/components/table/data-table-faceted-filter";
-import DataTableAddRoute from "@/components/table/shipping-routes/data-table-add-route";
 
 import { evaluationTypes, warehouses } from "@/components/table/data/data";
-import type { Shipper, ShippingRoute } from "@/types/shipping";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  onRowAdd: (row: ShippingRoute) => void;
-  metaData: Omit<Shipper, "shippingRoutes">;
+  onAddRoute: () => void;
 }
 
 export function DataTableToolbar<TData>({
   table,
-  onRowAdd,
-  metaData,
+  onAddRoute,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -62,7 +58,15 @@ export function DataTableToolbar<TData>({
         )}
       </div>
       <DataTableViewOptions table={table} />
-      <DataTableAddRoute metaData={metaData} onAdd={onRowAdd} />
+      <Button
+        type="button"
+        size="sm"
+        className="h-8 lg:flex ml-2"
+        onClick={onAddRoute}
+      >
+        <Plus />
+        Add Route
+      </Button>
     </div>
   );
 }

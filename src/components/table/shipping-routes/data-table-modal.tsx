@@ -1,13 +1,11 @@
-import { useState, type ReactNode } from "react";
-import { useForm, type FieldError, type SubmitHandler } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { type ReactNode } from "react";
+import { type FieldError, type UseFormReturn } from "react-hook-form";
 
 import {
   ChevronsUpDown,
   CircleDollarSign,
   DollarSign,
   PackagePlus,
-  Plus,
   Split,
 } from "lucide-react";
 
@@ -27,7 +25,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
@@ -52,18 +49,13 @@ import { SearchSelector } from "@/components/search-selector";
 import Flag from "@/components/flag";
 
 import {
-  ShippingRouteSchema,
   EVALUATION_TYPE,
   WAREHOUSES,
   type ShippingRoute,
   type Warehouse,
-  type Shipper,
 } from "@/types/shipping";
 import { COUNTRIES } from "@/types/country";
 import { CURRENCIES, type Currency } from "@/types/currency";
-
-import warehousesData from "@/data/warehouses.json";
-import { generateShippingRoute } from "@/utils";
 
 function WarehouseSelector({
   name,
@@ -218,43 +210,30 @@ function getError(errors: any) {
   }
 }
 
-function DataTableAddRoute({
-  metaData,
-  onAdd,
+function DataTableModal({
+  form,
+  open,
+  editMode,
+  setOpen,
+  onSubmit,
 }: {
-  metaData: Omit<Shipper, "shippingRoutes">;
-  onAdd: (route: ShippingRoute) => void;
+  form: UseFormReturn<ShippingRoute>;
+  open: boolean;
+  editMode: boolean;
+  setOpen: (open: boolean) => void;
+  onSubmit: (row: ShippingRoute) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const form = useForm<ShippingRoute>({
-    resolver: zodResolver(ShippingRouteSchema),
-    defaultValues: generateShippingRoute(
-      metaData.id,
-      metaData.defaultCurrency,
-      metaData.basedIn || (warehousesData[0] as Warehouse)
-    ),
-  });
-
-  const onSubmit: SubmitHandler<ShippingRoute> = (value) => {
-    form.reset();
-    setOpen(false);
-    onAdd(value);
-  };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type="button" size="sm" className="h-8 lg:flex ml-2">
-          <Plus />
-          Add Route
-        </Button>
-      </DialogTrigger>
       <DialogContent className="max-w-fit sm:max-w-fit">
         <DialogHeader>
-          <DialogTitle>Add Route</DialogTitle>
+          <DialogTitle>{editMode ? "Edit Route" : "Add Route"}</DialogTitle>
           <DialogDescription>
-            You can fill out this form to add a shipping route. Click add when
-            you&apos;re done.
+            {editMode ? (
+              <>Update the fields below to modify the selected shipping route. Click Save when you&apos;re done.</>
+            ) : (
+              <>You can fill out this form to add a shipping route. Click add when you&apos;re done.</>
+            )}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -603,7 +582,7 @@ function DataTableAddRoute({
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit">{editMode ? "Save Changes" : "Add Route"}</Button>
             </DialogFooter>
           </form>
         </Form>
@@ -612,4 +591,4 @@ function DataTableAddRoute({
   );
 }
 
-export default DataTableAddRoute;
+export default DataTableModal;
