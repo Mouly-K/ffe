@@ -71,6 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 }))
               }
               label="Choose a currency"
+              side="right"
             />
           </SidebarMenuItem>
         </SidebarMenu>

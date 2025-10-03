@@ -23,7 +23,7 @@ const EvaluationTypeSchema = z.literal(
 
 const WarehouseSchema = z.object({
   id: z.string(),
-  name: CountrySchema.shape.name.or(z.string()),
+  name: z.string(),
   countryName: CountrySchema.shape.name,
 });
 
@@ -101,7 +101,10 @@ const ShippingRouteSchema = z.intersection(
 
 const ShipperSchema = z.object({
   id: z.string(),
-  name: z.string(),
+  name: z
+    .string()
+    .min(2, { message: "Name must be at least 2 characters." })
+    .max(50, { message: "Name must be less than 50 characters." }),
   defaultCurrency: CountrySchema.shape.currencyTag,
   image: z.string().optional(),
   basedIn: WarehouseSchema,

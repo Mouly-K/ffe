@@ -22,6 +22,7 @@ import type {
 } from "./types/shipping";
 import type { SidebarRoute } from "./routes";
 import { isEqual } from "lodash";
+import { type CountryName } from "./types/country";
 
 // Generic Helepr Functions
 function indexBy<T extends Record<K, T[K]>, K extends keyof T>(
@@ -264,6 +265,17 @@ async function generatePrice(
       convertedCurrency: convertedCurrency || paidCurrency,
       conversionRate: conversion_rate,
     },
+  };
+}
+
+function generateWarehouse(
+  name: string = "",
+  countryName: CountryName = "China"
+): Warehouse {
+  return {
+    id: uuidv4(),
+    name,
+    countryName,
   };
 }
 
@@ -564,6 +576,7 @@ export {
   getConversionRate,
   refreshPrice,
   generatePrice,
+  generateWarehouse,
   generateShippingRoute,
   generateShipper,
   generateRun,

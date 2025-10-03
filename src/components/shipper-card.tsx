@@ -83,25 +83,33 @@ function ShipperCard({
   };
 
   const actionHandler = (action: RowAction, route: ShippingRoute) => {
-    if (action === ROW_ACTIONS.EDIT) {
-      form.reset(route);
-      setEditMode(true);
-      setModalOpen(true);
-    } else if (action === ROW_ACTIONS.DELETE) {
-      setShipper({
-        ...shipper,
-        shippingRoutes: shipper.shippingRoutes.filter((r) => r.id !== route.id),
-      });
-    } else if (action === ROW_ACTIONS.COPY) {
-      const newRoute = {
-        ...route,
-        id: crypto.randomUUID(),
-        name: route.name + " (Copy)",
-      };
-      setShipper({
-        ...shipper,
-        shippingRoutes: [...shipper.shippingRoutes, newRoute],
-      });
+    switch (action) {
+      case ROW_ACTIONS.EDIT:
+        form.reset(route);
+        setEditMode(true);
+        setModalOpen(true);
+        break;
+      case ROW_ACTIONS.DELETE:
+        setShipper({
+          ...shipper,
+          shippingRoutes: shipper.shippingRoutes.filter(
+            (r) => r.id !== route.id
+          ),
+        });
+        break;
+      case ROW_ACTIONS.COPY:
+        const newRoute = {
+          ...route,
+          id: crypto.randomUUID(),
+          name: route.name + " (Copy)",
+        };
+        setShipper({
+          ...shipper,
+          shippingRoutes: [...shipper.shippingRoutes, newRoute],
+        });
+        break;
+      default:
+        break;
     }
   };
 
@@ -115,6 +123,7 @@ function ShipperCard({
             </h2>
             <div className="flex gap-2">
               <SearchSelector
+                label="Choose the shipper's preferred currency"
                 items={CURRENCIES}
                 selectedKey={shipper.defaultCurrency}
                 renderItem={(key, item) => (
@@ -166,6 +175,7 @@ function ShipperCard({
                 </Button>
               </SearchSelector>
               <SearchSelector
+                label="Shipper's base warehouse"
                 items={WAREHOUSES}
                 selectedKey={shipper.basedIn.id}
                 renderItem={(_, item) => (

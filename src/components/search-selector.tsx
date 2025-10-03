@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Search } from "lucide-react";
+import { Check, PlusCircleIcon, Search } from "lucide-react";
 import { IconDotsVertical } from "@tabler/icons-react";
 import {
   DropdownMenu,
@@ -10,19 +10,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SidebarMenuButton, useSidebar } from "@/components/ui/sidebar";
+import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { filterObject } from "@/utils";
+import { Button } from "./ui/button";
 
 interface SearchSelectorProps<T extends Record<K, T[K]>, K extends keyof T> {
   items: T;
-  selectedKey: K;
-  renderItem: (key: K, item: T[K]) => React.ReactNode;
+  selectedKey?: K;
+  renderItem: (key: K | undefined, item: T[K]) => React.ReactNode;
   onSelect: (key: K) => void;
   label?: string;
   children?: React.ReactNode;
+  onAdd?: () => void;
+  side?: "bottom" | "top" | "right" | "left";
+  align?: "center" | "start" | "end";
   className?: string;
 }
 
@@ -33,10 +37,12 @@ export function SearchSelector<T, K extends keyof T>({
   onSelect,
   label = "Choose an item",
   children,
+  onAdd,
+  side,
+  align,
 }: SearchSelectorProps<T, K>) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  const { isMobile } = useSidebar();
 
   const filteredItems = filterObject(
     items,
@@ -53,7 +59,7 @@ export function SearchSelector<T, K extends keyof T>({
     onSelect(key);
   };
 
-  const selectedItem = items[selectedKey];
+  const selectedItem = selectedKey ? items[selectedKey] : undefined;
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -70,12 +76,27 @@ export function SearchSelector<T, K extends keyof T>({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-        side={isMobile ? "bottom" : "right"}
-        align="start"
+        side={side || "bottom"}
+        align={align || "start"}
         sideOffset={4}
       >
         <DropdownMenuLabel className="p-0">
-          <span className="flex px-3 py-2 font-medium">{label}</span>
+          <span className="flex justify-between items-center px-3 py-2 font-medium">
+            {label}
+            {onAdd && (
+              <Button
+                variant="default"
+                size="icon"
+                className="h-7"
+                onClick={() => {
+                  setIsOpen(false);
+                  onAdd();
+                }}
+              >
+                <PlusCircleIcon />
+              </Button>
+            )}
+          </span>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4" />
             <Input
