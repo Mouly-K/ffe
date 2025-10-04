@@ -2,6 +2,13 @@
 
 Freight Estimator is a hobby project created to explore **modern React 19 features** (the new `use` hook with Suspense, transitions, etc.) while building a practical tool for estimating freight and shipping costs.
 
+<div style="width:100%;margin:16px 0">
+  <figure style="width:100%;margin:0">
+    <a href="./screens/shippers.png"><img src="./screens/shippers.png" alt="shippers.png" style="width:100%;height:auto;display:block;max-width:100%" /></a>
+    <figcaption style="font-size:0.95em;margin-top:6px">Shippers Page</figcaption>
+  </figure>
+</div>
+
 ✨ At a glance: Freight Estimator consolidates items ➝ packages ➝ runs. It calculates item cost, shipping cost per-route, per-item breakdowns, and total run cost — while handling **multi-currency conversions** and current market exchange rates.
 
 ---
@@ -13,6 +20,7 @@ Freight Estimator is a hobby project created to explore **modern React 19 featur
 - 💰 Per-route and per-item **shipping cost breakdowns**
 - ⚖️ Volumetric and actual weight pricing (configurable divisor)
 - 💱 Built-in **currency conversion** across routes and runs with up-to-date rates
+ - 💱 Built-in **currency conversion** across routes and runs with up-to-date rates (rates via [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api))
 
 ---
 
@@ -47,6 +55,8 @@ Freight Estimator is a hobby project created to explore **modern React 19 featur
 
 - 📎 Items & packages support metadata (URLs, tracking numbers, notes)  
 - 📴 Offline-first friendly — local **SQLite store** via Rust (Tauri)  
+
+- 🔁 Exchange rates are fetched from the community-maintained API: [fawazahmed0/exchange-api](https://github.com/fawazahmed0/exchange-api)
 
 ---
 
